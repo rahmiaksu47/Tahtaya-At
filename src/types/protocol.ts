@@ -67,6 +67,7 @@ export type PeerMessage =
   | { type: 'QUICK_NOTE'; text: string; sender?: string }
   | { type: 'NAVIGATE_MEDIA'; direction: 'prev' | 'next' | number }
   | { type: 'ZOOM'; delta: number }
+  | { type: 'PAN_MEDIA'; dx: number; dy: number; reset?: boolean }
   | { type: 'TIMER_COMMAND'; action: 'start' | 'pause' | 'reset' | 'set'; seconds?: number }
   | { type: 'ROLL_DICE_COMMAND'; diceCount: number }
   | { type: 'PICK_STUDENT_COMMAND'; studentName?: string; studentNumber?: number; maxNumber?: number }
@@ -102,5 +103,9 @@ export type PeerMessage =
       bgMode: BoardBackgroundMode;
       docFilter: DocumentFilterMode;
     }
+  | { type: 'MOUSE_MOVE'; dx: number; dy: number }
+  | { type: 'MOUSE_SET_POS'; x: number; y: number; visible: boolean }
+  | { type: 'MOUSE_CLICK'; button: 'left' | 'right' | 'double' }
+  | { type: 'MOUSE_SCROLL'; deltaX: number; deltaY: number }
   | { type: 'DISCONNECT' }
   | { type: 'PONG'; timestamp: number };

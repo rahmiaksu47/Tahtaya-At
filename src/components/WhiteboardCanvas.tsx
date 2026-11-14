@@ -528,6 +528,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
       {/* Interactive Drawing Canvas */}
       <canvas
         ref={canvasRef}
+        data-whiteboard-overlay="true"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

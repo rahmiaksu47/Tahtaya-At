@@ -10,17 +10,17 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
-const STORAGE_KEY = 'tahtaya-at-pro-theme';
+const STORAGE_KEY = 'tahtaya-at-pro-theme-mode';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Default to 'light' (Aydınlık Sınıf Modu) as confirmed by the user
+  // Default to 'dark' (Koyu Tema) as requested by the user
   const [theme, setThemeState] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') return 'light';
+    if (typeof window === 'undefined') return 'dark';
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
       if (saved === 'light' || saved === 'dark') {
@@ -29,7 +29,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {
       // ignore storage errors
     }
-    return 'light';
+    return 'dark';
   });
 
   useEffect(() => {
@@ -39,18 +39,26 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else {
       root.classList.remove('dark');
     }
+  }, [theme]);
+
+  const persistTheme = (mode: ThemeMode) => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, theme);
+      window.localStorage.setItem(STORAGE_KEY, mode);
     } catch {
       // ignore storage errors
     }
-  }, [theme]);
+  };
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
+    setThemeState((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      persistTheme(next);
+      return next;
+    });
   };
 
   const setTheme = (mode: ThemeMode) => {
+    persistTheme(mode);
     setThemeState(mode);
   };
 

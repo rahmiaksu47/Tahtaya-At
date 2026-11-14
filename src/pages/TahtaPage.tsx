@@ -37,11 +37,18 @@ import {
   Image as ImageIcon,
   Film,
   Camera,
-  X
+  X,
+  MessageSquare,
+  Pin,
+  ChevronUp,
+  ChevronDown,
+  Hand,
+  RotateCcw
 } from 'lucide-react';
 import { WhiteboardCanvas } from '../components/WhiteboardCanvas';
 import { PDFViewer } from '../components/PDFViewer';
 import { LaserPointerOverlay } from '../components/LaserPointerOverlay';
+import { MouseCursorOverlay } from '../components/MouseCursorOverlay';
 import { ClassroomWidgets } from '../components/ClassroomWidgets';
 import { TelegramToast, ToastItem } from '../components/TelegramToast';
 import { CameraPermissionModal } from '../components/CameraPermissionModal';
@@ -62,7 +69,12 @@ import {
 
 const MAX_BOARD_FILE_BYTES = 200 * 1024 * 1024; // 200 MB
 
-export const TahtaPage: React.FC = () => {
+interface TahtaPageProps {
+  isEmbedded?: boolean;
+}
+
+export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
+  const boardRootRef = useRef<HTMLDivElement | null>(null);
   // Room code: 6-digit random number
   const [roomPin, setRoomPin] = useState<string>('');
   const [peerId, setPeerId] = useState<string>('');
@@ -107,7 +119,35 @@ export const TahtaPage: React.FC = () => {
   const [flipH, setFlipH] = useState<boolean>(false);
   const [flipV, setFlipV] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const zoomLevelRef = useRef<number>(1);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanMode, setIsPanMode] = useState<boolean>(false);
+  const [isPanDragging, setIsPanDragging] = useState<boolean>(false);
+  const panDragStartRef = useRef<{ x: number; y: number; origX: number; origY: number } | null>(null);
   const [docFilter, setDocFilter] = useState<DocumentFilterMode>('normal');
+
+  useEffect(() => {
+    zoomLevelRef.current = zoomLevel;
+    if (zoomLevel <= 1) {
+      setPanOffset({ x: 0, y: 0 });
+      setIsPanMode(false);
+    }
+  }, [zoomLevel]);
+
+  useEffect(() => {
+    setPanOffset({ x: 0, y: 0 });
+  }, [activeMediaIndex]);
+
+  const nudgePan = useCallback((dx: number, dy: number) => {
+    setPanOffset((prev) => ({
+      x: Math.max(-1800, Math.min(1800, Math.round(prev.x + dx))),
+      y: Math.max(-1800, Math.min(1800, Math.round(prev.y + dy))),
+    }));
+  }, []);
+
+  const resetPan = useCallback(() => {
+    setPanOffset({ x: 0, y: 0 });
+  }, []);
 
   // Live Camera stream
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
@@ -122,6 +162,29 @@ export const TahtaPage: React.FC = () => {
   // Interactive Laser pointer
   const [laser, setLaser] = useState<LaserPointerData | null>(null);
 
+  // Virtual Wireless Mouse Cursor (controlled from teacher mobile phone)
+  const mousePosRef = useRef<{ x: number; y: number }>({ x: 50, y: 50 });
+  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+  const [mouseVisible, setMouseVisible] = useState<boolean>(false);
+  const [isMouseOverInteractive, setIsMouseOverInteractive] = useState<boolean>(false);
+  const [mouseClickPulse, setMouseClickPulse] = useState<{ id: number; button: 'left' | 'right' | 'double' } | null>(null);
+  const [mouseContextMenu, setMouseContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const scrollAccumRef = useRef<number>(0);
+
+  const getBoardClientCoords = (xPct: number, yPct: number) => {
+    const rect = boardRootRef.current?.getBoundingClientRect();
+    if (rect && rect.width > 0 && rect.height > 0) {
+      return {
+        px: rect.left + (xPct / 100) * rect.width,
+        py: rect.top + (yPct / 100) * rect.height,
+      };
+    }
+    return {
+      px: (xPct / 100) * window.innerWidth,
+      py: (yPct / 100) * window.innerHeight,
+    };
+  };
+
   // Canvas and Board Modes
   const [bgMode, setBgMode] = useState<BoardBackgroundMode>('transparent');
   const [isDrawingEnabled, setIsDrawingEnabled] = useState<boolean>(true);
@@ -134,6 +197,22 @@ export const TahtaPage: React.FC = () => {
 
   // Telegram-style Toasts State
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  // Large Classroom-Readable Teacher Note Banner State
+  const [activeTeacherNote, setActiveTeacherNote] = useState<{
+    id: number;
+    text: string;
+    timestamp: string;
+    pinned: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!activeTeacherNote || activeTeacherNote.pinned) return;
+    const timer = window.setTimeout(() => {
+      setActiveTeacherNote((prev) => (prev?.id === activeTeacherNote.id ? null : prev));
+    }, 10000);
+    return () => window.clearTimeout(timer);
+  }, [activeTeacherNote]);
 
   // Add toast helper
   const addToast = useCallback((toast: Omit<ToastItem, 'id'>) => {
@@ -365,6 +444,8 @@ export const TahtaPage: React.FC = () => {
     });
     setRotation(0);
     setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+    setIsPanMode(false);
     sounds.playReceive();
 
     const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
@@ -389,12 +470,18 @@ export const TahtaPage: React.FC = () => {
         sounds.playRotate();
       } else if (e.key === 'Escape') {
         handleClearAll();
+      } else if (zoomLevelRef.current > 1 && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+        if (e.key === 'ArrowUp') nudgePan(0, 80);
+        if (e.key === 'ArrowDown') nudgePan(0, -80);
+        if (e.key === 'ArrowLeft') nudgePan(80, 0);
+        if (e.key === 'ArrowRight') nudgePan(-80, 0);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [nudgePan]);
 
   // Timer Tick handler
   useEffect(() => {
@@ -503,10 +590,11 @@ export const TahtaPage: React.FC = () => {
 
           conn.on('data', (raw: unknown) => {
             const data = raw as PeerMessage;
-            handleIncomingMessage(data);
+            handleIncomingMessageRef.current(data);
           });
 
           conn.on('close', () => {
+            if (activeConnRef.current && activeConnRef.current !== conn) return;
             setConnectionStatus('waiting');
             setConnectedDevice(null);
             setActiveConnection(null);
@@ -582,6 +670,8 @@ export const TahtaPage: React.FC = () => {
     }
   }, [cameraStream]);
 
+  const handleIncomingMessageRef = useRef<(msg: PeerMessage) => void>(() => {});
+
   // Handle incoming data channel messages
   const handleIncomingMessage = (msg: PeerMessage) => {
     switch (msg.type) {
@@ -622,6 +712,8 @@ export const TahtaPage: React.FC = () => {
         setFlipH(false);
         setFlipV(false);
         setZoomLevel(1);
+        setPanOffset({ x: 0, y: 0 });
+        setIsPanMode(false);
         break;
 
       case 'CLEAR_SCREEN':
@@ -697,6 +789,8 @@ export const TahtaPage: React.FC = () => {
             });
             setRotation(0);
             setZoomLevel(1);
+            setPanOffset({ x: 0, y: 0 });
+            setIsPanMode(false);
             sounds.playReceive();
 
             addToast({
@@ -726,9 +820,187 @@ export const TahtaPage: React.FC = () => {
         setZoomLevel((z) => Math.max(0.5, Math.min(3, Number((z + msg.delta).toFixed(1)))));
         break;
 
+      case 'PAN_MEDIA':
+        if (msg.reset) {
+          resetPan();
+        } else {
+          nudgePan(msg.dx, msg.dy);
+        }
+        break;
+
       case 'LASER_MOVE':
         setLaser(msg.laser);
         break;
+
+      case 'MOUSE_MOVE': {
+        const dx = Number.isFinite(msg.dx) ? msg.dx : 0;
+        const dy = Number.isFinite(msg.dy) ? msg.dy : 0;
+        const nextX = Math.max(0.5, Math.min(99.5, mousePosRef.current.x + dx));
+        const nextY = Math.max(0.5, Math.min(99.5, mousePosRef.current.y + dy));
+        mousePosRef.current = { x: nextX, y: nextY };
+        setMousePos({ x: nextX, y: nextY });
+        setMouseVisible(true);
+        try {
+          const { px, py } = getBoardClientCoords(nextX, nextY);
+          const stack = (document.elementsFromPoint ? document.elementsFromPoint(px, py) : []) as HTMLElement[];
+          const hoverTarget =
+            stack.find((el) => !el.hasAttribute('data-whiteboard-overlay')) || stack[0] || null;
+          if (hoverTarget) {
+            setIsMouseOverInteractive(
+              Boolean(hoverTarget.closest('button, a, [role="button"], input, select, textarea, label'))
+            );
+            hoverTarget.dispatchEvent(
+              new MouseEvent('mousemove', { bubbles: true, cancelable: true, clientX: px, clientY: py })
+            );
+          } else {
+            setIsMouseOverInteractive(false);
+          }
+        } catch {
+          // Safe fallback if coordinates are off-screen
+        }
+        break;
+      }
+
+      case 'MOUSE_SET_POS': {
+        const rawX = Number.isFinite(msg.x) ? msg.x : 50;
+        const rawY = Number.isFinite(msg.y) ? msg.y : 50;
+        const clampedX = Math.max(0.5, Math.min(99.5, rawX));
+        const clampedY = Math.max(0.5, Math.min(99.5, rawY));
+        mousePosRef.current = { x: clampedX, y: clampedY };
+        setMousePos({ x: clampedX, y: clampedY });
+        setMouseVisible(msg.visible);
+        if (!msg.visible) {
+          setMouseContextMenu(null);
+          setIsMouseOverInteractive(false);
+        } else {
+          try {
+            const { px, py } = getBoardClientCoords(clampedX, clampedY);
+            const stack = (document.elementsFromPoint ? document.elementsFromPoint(px, py) : []) as HTMLElement[];
+            const hoverTarget =
+              stack.find((el) => !el.hasAttribute('data-whiteboard-overlay')) || stack[0] || null;
+            if (hoverTarget) {
+              setIsMouseOverInteractive(
+                Boolean(hoverTarget.closest('button, a, [role="button"], input, select, textarea, label'))
+              );
+              hoverTarget.dispatchEvent(
+                new MouseEvent('mousemove', { bubbles: true, cancelable: true, clientX: px, clientY: py })
+              );
+            } else {
+              setIsMouseOverInteractive(false);
+            }
+          } catch {
+            // Safe fallback
+          }
+        }
+        break;
+      }
+
+      case 'MOUSE_CLICK': {
+        setMouseVisible(true);
+        setMouseClickPulse({ id: Date.now(), button: msg.button });
+        sounds.playClick();
+
+        const { px, py } = getBoardClientCoords(mousePosRef.current.x, mousePosRef.current.y);
+
+        if (msg.button === 'right') {
+          setMouseContextMenu({ x: mousePosRef.current.x, y: mousePosRef.current.y });
+          break;
+        }
+
+        try {
+          const stack = (document.elementsFromPoint ? document.elementsFromPoint(px, py) : []) as HTMLElement[];
+          const rawTarget =
+            stack.find((el) => !el.hasAttribute('data-whiteboard-overlay')) || stack[0] || null;
+
+          if (!rawTarget?.closest('[data-mouse-context-menu]')) {
+            setMouseContextMenu(null);
+          }
+
+          if (rawTarget) {
+            const interactive =
+              (rawTarget.closest('button, a, [role="button"], input, select, textarea, label') as HTMLElement | null) ||
+              rawTarget;
+
+            if (typeof PointerEvent !== 'undefined') {
+              rawTarget.dispatchEvent(
+                new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: px, clientY: py, pointerType: 'mouse' })
+              );
+            }
+            rawTarget.dispatchEvent(
+              new MouseEvent('mousedown', { bubbles: true, cancelable: true, clientX: px, clientY: py })
+            );
+            if (typeof PointerEvent !== 'undefined') {
+              rawTarget.dispatchEvent(
+                new PointerEvent('pointerup', { bubbles: true, cancelable: true, clientX: px, clientY: py, pointerType: 'mouse' })
+              );
+            }
+            rawTarget.dispatchEvent(
+              new MouseEvent('mouseup', { bubbles: true, cancelable: true, clientX: px, clientY: py })
+            );
+
+            if (interactive instanceof HTMLElement) {
+              interactive.focus?.({ preventScroll: true });
+              interactive.click();
+            } else {
+              rawTarget.dispatchEvent(
+                new MouseEvent('click', { bubbles: true, cancelable: true, view: window, clientX: px, clientY: py })
+              );
+            }
+
+            if (msg.button === 'double') {
+              rawTarget.dispatchEvent(
+                new MouseEvent('dblclick', { bubbles: true, cancelable: true, clientX: px, clientY: py })
+              );
+              if (rawTarget.tagName === 'VIDEO') {
+                const videoEl = rawTarget as HTMLVideoElement;
+                if (videoEl.paused) {
+                  videoEl.play().catch(() => {});
+                } else {
+                  videoEl.pause();
+                }
+              }
+            }
+          }
+        } catch {
+          // Safe fallback
+        }
+        break;
+      }
+
+      case 'MOUSE_SCROLL': {
+        try {
+          const { px, py } = getBoardClientCoords(mousePosRef.current.x, mousePosRef.current.y);
+          const stack = (document.elementsFromPoint ? document.elementsFromPoint(px, py) : []) as HTMLElement[];
+          let el: HTMLElement | null =
+            stack.find((item) => !item.hasAttribute('data-whiteboard-overlay')) || stack[0] || null;
+          let scrolledContainer = false;
+
+          while (el && el !== document.body && el !== document.documentElement) {
+            const style = window.getComputedStyle(el);
+            const canScrollY = (style.overflowY === 'auto' || style.overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 2;
+            const canScrollX = (style.overflowX === 'auto' || style.overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 2;
+            if (canScrollY || canScrollX) {
+              el.scrollBy({ top: msg.deltaY, left: msg.deltaX, behavior: 'auto' });
+              scrolledContainer = true;
+              break;
+            }
+            el = el.parentElement;
+          }
+
+          if (!scrolledContainer && zoomLevelRef.current > 1 && (mediaItemsRef.current.length > 0 || cameraStreamRef.current)) {
+            nudgePan(-msg.deltaX, -msg.deltaY);
+          } else if (!scrolledContainer && mediaItemsRef.current.length > 0) {
+            scrollAccumRef.current += msg.deltaY;
+            if (Math.abs(scrollAccumRef.current) >= 120) {
+              handleStepMediaOrPage(scrollAccumRef.current > 0 ? 'next' : 'prev');
+              scrollAccumRef.current = 0;
+            }
+          }
+        } catch {
+          // Safe fallback
+        }
+        break;
+      }
 
       case 'SET_BG_MODE':
         setBgMode(msg.mode);
@@ -784,6 +1056,10 @@ export const TahtaPage: React.FC = () => {
             setActiveMediaIndex(next.length - 1);
             return next;
           });
+          setRotation(0);
+          setZoomLevel(1);
+          setPanOffset({ x: 0, y: 0 });
+          setIsPanMode(false);
           if (cameraStream) {
             cameraStream.getTracks().forEach((t) => t.stop());
             setCameraStream(null);
@@ -801,15 +1077,19 @@ export const TahtaPage: React.FC = () => {
         handleDownloadCurrentMedia();
         break;
 
-      case 'QUICK_NOTE':
+      case 'QUICK_NOTE': {
         sounds.playTelegramConnect();
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
-        addToast({
-          type: 'info',
-          title: 'Öğretmen Notu',
-          message: msg.text,
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        setActiveTeacherNote({
+          id: Date.now(),
+          text: msg.text,
+          timestamp: timeStr,
+          pinned: false,
         });
         break;
+      }
 
       // Bi-directional live hand drawing from teacher mobile phone
       case 'DRAW_POINT':
@@ -842,6 +1122,7 @@ export const TahtaPage: React.FC = () => {
         break;
     }
   };
+  handleIncomingMessageRef.current = handleIncomingMessage;
 
   const handleClearAll = () => {
     if (cameraStream) {
@@ -854,7 +1135,12 @@ export const TahtaPage: React.FC = () => {
     setFlipH(false);
     setFlipV(false);
     setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+    setIsPanMode(false);
     setLaser(null);
+    setMouseVisible(false);
+    setMouseContextMenu(null);
+    setActiveTeacherNote(null);
     setDocFilter('normal');
     setBgMode('transparent');
     setIsBlackout(false);
@@ -904,7 +1190,12 @@ export const TahtaPage: React.FC = () => {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col select-none font-sans transition-colors duration-200">
+    <div
+      ref={boardRootRef}
+      className={`relative ${
+        isEmbedded ? 'w-full h-full' : 'w-screen h-screen'
+      } overflow-hidden bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col select-none font-sans transition-colors duration-200`}
+    >
       {/* Hidden Local File Input for 200MB PDF / Image / Video opening directly on Board */}
       <input
         ref={boardFileInputRef}
@@ -917,8 +1208,100 @@ export const TahtaPage: React.FC = () => {
       {/* Laser Pointer overlay */}
       <LaserPointerOverlay laser={laser} />
 
+      {/* Wireless Mouse Cursor & Right-Click Context Menu Overlay */}
+      <MouseCursorOverlay
+        position={mousePos}
+        visible={mouseVisible}
+        isOverInteractive={isMouseOverInteractive}
+        clickPulse={mouseClickPulse}
+        contextMenu={mouseContextMenu}
+        hasMedia={mediaItems.length > 0}
+        isFullscreen={isFullscreen}
+        isBlackout={isBlackout}
+        onCloseContextMenu={() => setMouseContextMenu(null)}
+        onPrevMedia={() => handleStepMediaOrPage('prev')}
+        onNextMedia={() => handleStepMediaOrPage('next')}
+        onZoomIn={() => setZoomLevel((z) => Math.min(3, Number((z + 0.25).toFixed(2))))}
+        onZoomOut={() => setZoomLevel((z) => Math.max(0.5, Number((z - 0.25).toFixed(2))))}
+        onRotate={() => {
+          setRotation((prev) => (prev + 90) % 360);
+          sounds.playRotate();
+        }}
+        onToggleFullscreen={toggleFullscreen}
+        onToggleBlackout={() => {
+          setIsBlackout((b) => !b);
+          sounds.playCurtain();
+        }}
+        onHideCursor={() => setMouseVisible(false)}
+      />
+
       {/* Telegram-style Toast Notifications System */}
       <TelegramToast toasts={toasts} onDismiss={removeToast} />
+
+      {/* Large Classroom-Readable Teacher Note Announcement */}
+      {activeTeacherNote && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[62] w-[min(92%,820px)] pointer-events-auto animate-in slide-in-from-top-4 fade-in duration-200">
+          <div className="rounded-3xl bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-2 border-[#0284c7] shadow-[0_24px_60px_rgba(2,132,199,0.28)] overflow-hidden">
+            <div className="px-6 py-3.5 bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border-b border-[#0284c7]/20 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#0284c7] text-white flex items-center justify-center shadow-sm shrink-0">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-sm font-black uppercase tracking-wider text-[#0284c7] dark:text-[#38bdf8] block">
+                    Öğretmen Notu
+                  </span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-[#8ba3bd]">
+                    Sınıf Duyurusu · {activeTeacherNote.timestamp}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveTeacherNote((prev) => (prev ? { ...prev, pinned: !prev.pinned } : null))
+                  }
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-colors cursor-pointer ${
+                    activeTeacherNote.pinned
+                      ? 'bg-[#0284c7] text-white border-[#0284c7]'
+                      : 'bg-white dark:bg-[#10243b] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#0284c7]'
+                  }`}
+                  title={activeTeacherNote.pinned ? 'Sabitlemeyi Kaldır' : 'Ekranda Sabitle'}
+                >
+                  <Pin className="w-3.5 h-3.5" />
+                  <span>{activeTeacherNote.pinned ? 'Sabitlendi' : 'Sabitle'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTeacherNote(null)}
+                  className="p-2 rounded-xl bg-white dark:bg-[#10243b] hover:bg-rose-50 dark:hover:bg-rose-500/20 text-slate-500 hover:text-rose-600 dark:text-slate-300 border border-slate-200 dark:border-[#193654] transition-colors cursor-pointer"
+                  aria-label="Notu Kapat"
+                  title="Kapat"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="px-7 py-6 sm:px-9 sm:py-8 text-center">
+              <p className="text-2xl sm:text-4xl lg:text-[42px] font-black tracking-tight leading-snug text-slate-900 dark:text-white break-words">
+                {activeTeacherNote.text}
+              </p>
+            </div>
+
+            {!activeTeacherNote.pinned && (
+              <div className="px-6 pb-3 flex items-center justify-center">
+                <span className="text-[11px] font-medium text-slate-400 dark:text-[#6f89a8]">
+                  10 saniye sonra otomatik kapanır · Ekranda tutmak için Sabitle&apos;ye tıklayın
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modern & Theme-Aware Camera Access Permission & Live Preview Modal */}
       <CameraPermissionModal
@@ -1203,7 +1586,14 @@ export const TahtaPage: React.FC = () => {
       </header>
 
       {/* Main Interactive Stage */}
-      <main className="relative flex-1 w-full h-full overflow-hidden flex items-center justify-center">
+      <main
+        onWheel={(e) => {
+          if ((currentMedia || cameraStream) && zoomLevel > 1) {
+            nudgePan(-e.deltaX, -e.deltaY);
+          }
+        }}
+        className="relative flex-1 w-full h-full overflow-hidden flex items-center justify-center"
+      >
         {/* Background Canvas Mode Styling */}
         <div 
           className={`absolute inset-0 transition-colors duration-300 ${
@@ -1360,9 +1750,9 @@ export const TahtaPage: React.FC = () => {
               autoPlay
               playsInline
               muted
-              className="max-w-full max-h-full object-contain transition-transform duration-300 shadow-2xl"
+              className={`max-w-full max-h-full object-contain shadow-2xl ${isPanDragging ? 'transition-none' : 'transition-transform duration-200'}`}
               style={{
-                transform: `rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+                transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
                 ...getFilterStyle(),
               }}
             />
@@ -1383,9 +1773,9 @@ export const TahtaPage: React.FC = () => {
                 src={currentMedia.dataUrl}
                 controls
                 autoPlay
-                className="relative z-10 max-w-full max-h-full object-contain transition-transform duration-300 rounded-xl shadow-2xl"
+                className={`relative z-10 max-w-full max-h-full object-contain rounded-xl shadow-2xl ${isPanDragging ? 'transition-none' : 'transition-transform duration-200'}`}
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+                  transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
                   ...getFilterStyle(),
                 }}
               />
@@ -1415,6 +1805,7 @@ export const TahtaPage: React.FC = () => {
                 rotation={rotation}
                 flipH={flipH}
                 flipV={flipV}
+                panOffset={panOffset}
                 filterStyle={getFilterStyle()}
                 onDownloadFile={handleDownloadCurrentMedia}
               />
@@ -1422,9 +1813,9 @@ export const TahtaPage: React.FC = () => {
               <img
                 src={currentMedia.dataUrl}
                 alt={currentMedia.name}
-                className="relative z-10 max-w-full max-h-full object-contain transition-transform duration-300 shadow-2xl rounded-xl"
+                className={`relative z-10 max-w-full max-h-full object-contain shadow-2xl rounded-xl ${isPanDragging ? 'transition-none' : 'transition-transform duration-200'}`}
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+                  transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
                   ...getFilterStyle(),
                 }}
               />
@@ -1432,11 +1823,57 @@ export const TahtaPage: React.FC = () => {
           </div>
         )}
 
+        {/* 3B. INTERACTIVE TOUCH / MOUSE DRAG-TO-PAN OVERLAY WHEN ZOOMED */}
+        {(currentMedia || cameraStream) && (isPanMode || (zoomLevel > 1 && !isDrawingEnabled && currentMedia?.type !== 'video')) && (
+          <div
+            onPointerDown={(e) => {
+              e.preventDefault();
+              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+              panDragStartRef.current = {
+                x: e.clientX,
+                y: e.clientY,
+                origX: panOffset.x,
+                origY: panOffset.y,
+              };
+              setIsPanDragging(true);
+            }}
+            onPointerMove={(e) => {
+              if (!panDragStartRef.current) return;
+              const dx = e.clientX - panDragStartRef.current.x;
+              const dy = e.clientY - panDragStartRef.current.y;
+              setPanOffset({
+                x: Math.max(-1800, Math.min(1800, Math.round(panDragStartRef.current.origX + dx))),
+                y: Math.max(-1800, Math.min(1800, Math.round(panDragStartRef.current.origY + dy))),
+              });
+            }}
+            onPointerUp={(e) => {
+              if (panDragStartRef.current) {
+                try {
+                  (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+                } catch {
+                  // safe
+                }
+              }
+              panDragStartRef.current = null;
+              setIsPanDragging(false);
+            }}
+            onPointerCancel={() => {
+              panDragStartRef.current = null;
+              setIsPanDragging(false);
+            }}
+            className="absolute inset-0 z-[19] touch-none cursor-grab active:cursor-grabbing"
+            title="Dosyayı yukarı, aşağı, sola ve sağa kaydırmak için sürükleyin"
+          />
+        )}
+
         {/* 4. TRANSPARENT WHITEBOARD DRAWING CANVAS LAYER (Bi-directional Sync) */}
         <WhiteboardCanvas
           bgMode={bgMode}
-          isDrawingEnabled={isDrawingEnabled}
-          onToggleDrawing={() => setIsDrawingEnabled((prev) => !prev)}
+          isDrawingEnabled={isDrawingEnabled && !isPanMode}
+          onToggleDrawing={() => {
+            setIsPanMode(false);
+            setIsDrawingEnabled((prev) => !prev);
+          }}
           externalStrokes={syncedStrokes}
           incomingPoint={incomingPoint}
           onStrokeComplete={(stroke) => {
@@ -1531,7 +1968,7 @@ export const TahtaPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Zoom Controls */}
+            {/* Zoom & Pan Controls */}
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-2 py-1 rounded-xl border border-slate-200 dark:border-[#193654]">
               <button
                 onClick={() => setZoomLevel((z) => Math.max(0.5, Number((z - 0.2).toFixed(1))))}
@@ -1550,6 +1987,60 @@ export const TahtaPage: React.FC = () => {
               >
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
+
+              {(zoomLevel > 1 || panOffset.x !== 0 || panOffset.y !== 0 || isPanMode) && (
+                <div className="flex items-center gap-0.5 pl-1.5 ml-1 border-l border-slate-300 dark:border-[#193654]">
+                  <button
+                    onClick={() => setIsPanMode((p) => !p)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                      isPanMode
+                        ? 'bg-[#0284c7] text-white shadow-xs'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]'
+                    }`}
+                    title="Elle Sürükle / Kaydır Modu (Açıkken ekrana dokunup dosyayı hareket ettirebilirsiniz)"
+                  >
+                    <Hand className="w-3.5 h-3.5" />
+                    <span>{isPanMode ? 'Kaydır Açık' : 'Kaydır'}</span>
+                  </button>
+                  <button
+                    onClick={() => nudgePan(0, 90)}
+                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    title="Yukarı Kaydır (Üst Kısma Bak)"
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => nudgePan(0, -90)}
+                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    title="Aşağı Kaydır (Alt Kısma Bak)"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => nudgePan(90, 0)}
+                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    title="Sola Kaydır"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => nudgePan(-90, 0)}
+                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    title="Sağa Kaydır"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                  {(panOffset.x !== 0 || panOffset.y !== 0) && (
+                    <button
+                      onClick={resetPan}
+                      className="p-1 rounded-lg text-[#0284c7] dark:text-[#38bdf8] hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                      title="Dosyayı Ortala"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Clear Screen */}

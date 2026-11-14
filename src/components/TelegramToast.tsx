@@ -39,7 +39,7 @@ interface TelegramToastProps {
 
 export const TelegramToast: React.FC<TelegramToastProps> = ({ toasts, onDismiss }) => {
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none select-none">
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-md w-[calc(100vw-2rem)] pointer-events-none select-none">
       {toasts.map((toast) => (
         <ToastCard key={toast.id} toast={toast} onDismiss={() => onDismiss(toast.id)} />
       ))}
@@ -70,7 +70,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
     switch (toast.type) {
       case 'connect':
         return {
-          icon: <Wifi className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
+          icon: <Wifi className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
           avatarBg: 'bg-emerald-500/15 border border-emerald-500/30',
           badgeText: 'BAĞLANDI',
           badgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
@@ -78,7 +78,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
         };
       case 'disconnect':
         return {
-          icon: <WifiOff className="w-4 h-4 text-rose-600 dark:text-rose-400" />,
+          icon: <WifiOff className="w-5 h-5 text-rose-600 dark:text-rose-400" />,
           avatarBg: 'bg-rose-500/15 border border-rose-500/30',
           badgeText: 'AYRILDI',
           badgeClass: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
@@ -86,7 +86,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
         };
       case 'image':
         return {
-          icon: <ImageIcon className="w-4 h-4 text-[#0284c7] dark:text-sky-400" />,
+          icon: <ImageIcon className="w-5 h-5 text-[#0284c7] dark:text-sky-400" />,
           avatarBg: 'bg-sky-500/15 border border-sky-500/30',
           badgeText: 'FOTOĞRAF',
           badgeClass: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30',
@@ -94,7 +94,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
         };
       case 'pdf':
         return {
-          icon: <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
+          icon: <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
           avatarBg: 'bg-amber-500/15 border border-amber-500/30',
           badgeText: 'PDF BELGE',
           badgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
@@ -102,7 +102,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
         };
       case 'rotate':
         return {
-          icon: <RotateCw className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />,
+          icon: <RotateCw className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
           avatarBg: 'bg-indigo-500/15 border border-indigo-500/30',
           badgeText: 'DÖNDÜRME',
           badgeClass: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30',
@@ -110,7 +110,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
         };
       case 'clear':
         return {
-          icon: <Trash2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />,
+          icon: <Trash2 className="w-5 h-5 text-slate-600 dark:text-slate-400" />,
           avatarBg: 'bg-slate-200 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600/40',
           badgeText: 'TEMİZLENDİ',
           badgeClass: 'bg-slate-200 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600',
@@ -118,7 +118,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
         };
       default:
         return {
-          icon: <Info className="w-4 h-4 text-[#0284c7] dark:text-sky-400" />,
+          icon: <Info className="w-5 h-5 text-[#0284c7] dark:text-sky-400" />,
           avatarBg: 'bg-sky-500/15 border border-sky-500/30',
           badgeText: 'BİLDİRİM',
           badgeClass: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30',
@@ -130,27 +130,27 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
   const style = getStyle();
 
   return (
-    <div className="pointer-events-auto relative w-full overflow-hidden rounded-2xl bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] shadow-xl backdrop-blur-xl text-slate-900 dark:text-white transition-all animate-in slide-in-from-top-3 fade-in duration-200 hover:scale-[1.01]">
-      <div className="p-3.5 flex items-start gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${style.avatarBg} shadow-2xs`}>
+    <div className="pointer-events-auto relative w-full overflow-hidden rounded-2xl bg-white/98 dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] shadow-2xl backdrop-blur-xl text-slate-900 dark:text-white transition-all animate-in slide-in-from-top-3 fade-in duration-200 hover:scale-[1.01]">
+      <div className="p-4 flex items-start gap-3.5">
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${style.avatarBg} shadow-2xs`}>
           {style.icon}
         </div>
 
         <div className="flex-1 min-w-0 pr-1">
-          <div className="flex items-center justify-between gap-1 mb-0.5">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate flex items-center gap-1.5">
               <span>{toast.title}</span>
             </h4>
-            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${style.badgeClass}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border shrink-0 ${style.badgeClass}`}>
               {style.badgeText}
             </span>
           </div>
 
-          <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2">
+          <p className="text-xs sm:text-[13px] font-medium text-slate-700 dark:text-slate-200 leading-snug line-clamp-3">
             {toast.message}
           </p>
 
-          <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400 dark:text-slate-400">
+          <div className="flex items-center justify-between mt-1.5 text-[11px] text-slate-400 dark:text-slate-400">
             <span>{toast.deviceName || 'WebRTC Doğrudan P2P'}</span>
             <span>{toast.timestamp || 'Şimdi'}</span>
           </div>

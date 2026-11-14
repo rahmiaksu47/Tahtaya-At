@@ -1,7 +1,14 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      try {
+        if (localStorage.getItem('tahtaya-at-pro-theme-mode') === 'light') {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#071322" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -73,14 +80,50 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- PWA Service Worker Registration -->
+    <!-- PWA Service Worker Registration (Dev-safe & Cache-Busting) -->
     <script>
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch((err) => {
-            console.log('SW register notice:', err);
+        (function () {
+          var host = window.location.hostname || '';
+          var isDev = host === 'localhost' || host === '127.0.0.1' || host.indexOf('ais-dev-') === 0;
+
+          if (isDev) {
+            var hadController = Boolean(navigator.serviceWorker.controller);
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              var promises = regs.map(function (r) { return r.unregister(); });
+              if ('caches' in window) {
+                caches.keys().then(function (keys) {
+                  keys.forEach(function (k) { caches.delete(k); });
+                });
+              }
+              Promise.all(promises).then(function () {
+                if (hadController && !sessionStorage.getItem('sw_dev_cleaned')) {
+                  sessionStorage.setItem('sw_dev_cleaned', '1');
+                  window.location.reload();
+                }
+              });
+            });
+            return;
+          }
+
+          window.addEventListener('load', function () {
+            var hadController = Boolean(navigator.serviceWorker.controller);
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+              .then(function (reg) {
+                reg.update().catch(function () {});
+              })
+              .catch(function (err) {
+                console.log('SW register notice:', err);
+              });
+
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+              if (hadController && !sessionStorage.getItem('sw_reloaded_v4')) {
+                sessionStorage.setItem('sw_reloaded_v4', '1');
+                window.location.reload();
+              }
+            });
           });
-        });
+        })();
       }
     </script>
   </body>

@@ -38,10 +38,14 @@ import {
   ZoomOut,
   X,
   Sparkles,
-  Download
+  Download,
+  Mouse,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { TelegramToast, ToastItem } from '../components/TelegramToast';
 import { MobileDrawPad } from '../components/MobileDrawPad';
+import { MobileMousePad } from '../components/MobileMousePad';
 import { PWAInstallBanner } from '../components/PWAInstallBanner';
 import { CameraPermissionModal } from '../components/CameraPermissionModal';
 import { ThemeToggle } from '../context/ThemeContext';
@@ -87,7 +91,7 @@ export const KumandaPage: React.FC = () => {
   const [latestPickedStudent, setLatestPickedStudent] = useState<string | null>(null);
 
   // Mobile active tab: ergonomic bottom bar
-  const [activeTab, setActiveTab] = useState<'controls' | 'drawing' | 'classroom' | 'laser' | 'note'>('controls');
+  const [activeTab, setActiveTab] = useState<'controls' | 'drawing' | 'mouse' | 'classroom' | 'laser' | 'note'>('controls');
 
   // Real-time synced state from smartboard
   const [boardState, setBoardState] = useState<{
@@ -1141,36 +1145,98 @@ export const KumandaPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Zoom Controls */}
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-xs">
-                    <span className="text-slate-600 dark:text-[#8ba3bd] font-medium flex items-center gap-1">
-                      <span>Yakınlaştırma:</span>
-                      <strong className="text-[#0284c7] dark:text-[#38bdf8] font-mono">{Math.round(boardState.zoomLevel * 100)}%</strong>
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          triggerHaptic(20);
-                          sendMessage({ type: 'ZOOM', delta: -0.2 });
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center gap-1 font-semibold"
-                        title="Uzaklaştır"
-                      >
-                        <ZoomOut className="w-3.5 h-3.5" />
-                        <span>Küçült</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          triggerHaptic(20);
-                          sendMessage({ type: 'ZOOM', delta: 0.2 });
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center gap-1 font-semibold"
-                        title="Yakınlaştır"
-                      >
-                        <ZoomIn className="w-3.5 h-3.5" />
-                        <span>Büyüt</span>
-                      </button>
+                  {/* Zoom & Pan Controls */}
+                  <div className="flex flex-col gap-2 p-2 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600 dark:text-[#8ba3bd] font-medium flex items-center gap-1">
+                        <span>Yakınlaştırma:</span>
+                        <strong className="text-[#0284c7] dark:text-[#38bdf8] font-mono">{Math.round(boardState.zoomLevel * 100)}%</strong>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            triggerHaptic(20);
+                            sendMessage({ type: 'ZOOM', delta: -0.2 });
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center gap-1 font-semibold"
+                          title="Uzaklaştır"
+                        >
+                          <ZoomOut className="w-3.5 h-3.5" />
+                          <span>Küçült</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            triggerHaptic(20);
+                            sendMessage({ type: 'ZOOM', delta: 0.2 });
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center gap-1 font-semibold"
+                          title="Yakınlaştır"
+                        >
+                          <ZoomIn className="w-3.5 h-3.5" />
+                          <span>Büyüt</span>
+                        </button>
+                      </div>
                     </div>
+
+                    {boardState.zoomLevel > 1 && (
+                      <div className="grid grid-cols-5 gap-1 pt-2 border-t border-slate-200 dark:border-[#193654]">
+                        <button
+                          onClick={() => {
+                            triggerHaptic(15);
+                            sendMessage({ type: 'PAN_MEDIA', dx: 0, dy: 90 });
+                          }}
+                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          title="Yukarı Kaydır"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+                          <span className="text-[11px]">Yukarı</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            triggerHaptic(15);
+                            sendMessage({ type: 'PAN_MEDIA', dx: 0, dy: -90 });
+                          }}
+                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          title="Aşağı Kaydır"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+                          <span className="text-[11px]">Aşağı</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            triggerHaptic(15);
+                            sendMessage({ type: 'PAN_MEDIA', dx: 90, dy: 0 });
+                          }}
+                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          title="Sola Kaydır"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <span className="text-[11px]">Sol</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            triggerHaptic(15);
+                            sendMessage({ type: 'PAN_MEDIA', dx: -90, dy: 0 });
+                          }}
+                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          title="Sağa Kaydır"
+                        >
+                          <span className="text-[11px]">Sağ</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            triggerHaptic(20);
+                            sendMessage({ type: 'PAN_MEDIA', dx: 0, dy: 0, reset: true });
+                          }}
+                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          title="Ortala"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span className="text-[11px]">Ortala</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1391,6 +1457,18 @@ export const KumandaPage: React.FC = () => {
               </div>
             )}
 
+            {/* TAB 3B: WIRELESS MOUSE TOUCHPAD */}
+            {activeTab === 'mouse' && (
+              <MobileMousePad
+                isConnected={isConnected}
+                onMouseMoveDelta={(dx, dy) => sendMessage({ type: 'MOUSE_MOVE', dx, dy })}
+                onMouseClick={(button) => sendMessage({ type: 'MOUSE_CLICK', button })}
+                onMouseScroll={(deltaX, deltaY) => sendMessage({ type: 'MOUSE_SCROLL', deltaX, deltaY })}
+                onSetCursorState={(x, y, visible) => sendMessage({ type: 'MOUSE_SET_POS', x, y, visible })}
+                triggerHaptic={triggerHaptic}
+              />
+            )}
+
             {/* TAB 4: LASER TOUCHPAD */}
             {activeTab === 'laser' && (
               <div className="flex flex-col gap-3">
@@ -1521,74 +1599,189 @@ export const KumandaPage: React.FC = () => {
         )}
       </main>
 
-      {/* CIRCULAR QUICK ACTION MENU (Temizle, Döndür, Kamera) */}
+      {/* CIRCULAR QUICK ACTION MENU (Alt Menüler + Hızlı İşlemler: Kamera, Döndür, Temizle) */}
       {isConnected && (
         <>
           {isQuickActionOpen && (
             <div
               onClick={() => setIsQuickActionOpen(false)}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+              className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
             />
           )}
 
-          <div className="fixed bottom-20 right-4 sm:right-6 z-40 flex flex-col items-end gap-3 pointer-events-auto select-none">
+          <div className="fixed bottom-20 right-4 sm:right-6 z-[45] flex flex-col items-end gap-3 pointer-events-auto select-none">
             {isQuickActionOpen && (
-              <div className="flex flex-col items-end gap-2.5 animate-in slide-in-from-bottom-5 fade-in duration-200">
-                {/* 1. Canlı Kamera / Doküman Kamerası */}
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] px-2.5 py-1 rounded-xl shadow-lg">
-                    {isCameraActive ? 'Kamerayı Kapat' : 'Canlı Kamera'}
+              <div className="w-72 max-w-[calc(100vw-2rem)] max-h-[72vh] overflow-y-auto rounded-2xl bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border border-slate-200 dark:border-[#193654] shadow-2xl p-3 flex flex-col gap-3 animate-in slide-in-from-bottom-4 fade-in duration-200">
+                {/* Section 1: Alt Menüler (Hızlı Sekme Geçişi) */}
+                <div>
+                  <div className="flex items-center justify-between px-1 mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd]">
+                      Alt Menüler · Hızlı Geçiş
+                    </span>
+                    <span className="text-[10px] font-mono text-[#0284c7] dark:text-[#38bdf8] font-semibold">
+                      6 Sekme
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(20);
+                        setActiveTab('controls');
+                        setIsQuickActionOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        activeTab === 'controls'
+                          ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
+                          : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#0284c7]/50'
+                      }`}
+                    >
+                      <Camera className="w-4 h-4 shrink-0" />
+                      <span>Kumanda</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(20);
+                        setActiveTab('drawing');
+                        setIsQuickActionOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        activeTab === 'drawing'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-emerald-500/50'
+                      }`}
+                    >
+                      <PenTool className="w-4 h-4 shrink-0" />
+                      <span>El Çizimi</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(20);
+                        setActiveTab('mouse');
+                        setIsQuickActionOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        activeTab === 'mouse'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                          : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-indigo-500/50'
+                      }`}
+                    >
+                      <Mouse className="w-4 h-4 shrink-0" />
+                      <span>Fare (Pad)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(20);
+                        setActiveTab('laser');
+                        setIsQuickActionOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        activeTab === 'laser'
+                          ? 'bg-[#e54c4c] text-white border-[#e54c4c] shadow-xs'
+                          : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#e54c4c]/50'
+                      }`}
+                    >
+                      <Crosshair className="w-4 h-4 shrink-0" />
+                      <span>Lazer</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(20);
+                        setActiveTab('classroom');
+                        setIsQuickActionOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        activeTab === 'classroom'
+                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                          : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-amber-500/50'
+                      }`}
+                    >
+                      <Timer className="w-4 h-4 shrink-0" />
+                      <span>Sınıf</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(20);
+                        setActiveTab('note');
+                        setIsQuickActionOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                        activeTab === 'note'
+                          ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
+                          : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#0284c7]/50'
+                      }`}
+                    >
+                      <MessageSquare className="w-4 h-4 shrink-0" />
+                      <span>Notlar</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="h-px bg-slate-200 dark:bg-[#193654]" />
+
+                {/* Section 2: Hızlı Tahta İşlemleri */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd] px-1 mb-0.5">
+                    Hızlı Tahta İşlemleri
                   </span>
+
+                  {/* 1. Canlı Kamera / Doküman Kamerası */}
                   <button
+                    type="button"
                     onClick={() => {
                       triggerHaptic(35);
                       toggleDocumentCamera();
                       setIsQuickActionOpen(false);
                     }}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-xl transition-transform active:scale-90 border-2 border-white/20 ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-white shadow-xs transition-all active:scale-95 cursor-pointer ${
                       isCameraActive 
                         ? 'bg-[#e54c4c] hover:bg-[#dc2626]' 
                         : 'bg-[#10b981] hover:bg-[#059669]'
                     }`}
                     title="Canlı Doküman Kamerasını Aç / Kapat"
                   >
-                    {isCameraActive ? <VideoOff className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
+                    <span>{isCameraActive ? 'Kamerayı Kapat' : 'Canlı Kamera'}</span>
+                    {isCameraActive ? <VideoOff className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
                   </button>
-                </div>
 
-                {/* 2. Görüntüyü 90° Döndür */}
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] px-2.5 py-1 rounded-xl shadow-lg">
-                    90° Döndür
-                  </span>
+                  {/* 2. Görüntüyü 90° Döndür */}
                   <button
+                    type="button"
                     onClick={() => {
                       triggerHaptic(30);
                       handleRotate();
                       setIsQuickActionOpen(false);
                     }}
-                    className="w-12 h-12 rounded-full bg-[#0284c7] hover:bg-[#0369a1] text-white flex items-center justify-center shadow-xl transition-transform active:scale-90 border-2 border-white/20"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
                     title="Tahtadaki Görüntüyü 90° Çevir"
                   >
-                    <RotateCw className="w-5 h-5" />
+                    <span>90° Döndür</span>
+                    <RotateCw className="w-4 h-4" />
                   </button>
-                </div>
 
-                {/* 3. Tahtayı Temizle / Sıfırla */}
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] px-2.5 py-1 rounded-xl shadow-lg">
-                    Tahtayı Temizle
-                  </span>
+                  {/* 3. Tahtayı Temizle / Sıfırla */}
                   <button
+                    type="button"
                     onClick={() => {
                       triggerHaptic(50);
                       handleClearScreen();
                       setIsQuickActionOpen(false);
                     }}
-                    className="w-12 h-12 rounded-full bg-[#e54c4c] hover:bg-[#dc2626] text-white flex items-center justify-center shadow-xl transition-transform active:scale-90 border-2 border-white/20"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-[#ef4444] text-xs font-bold transition-all active:scale-95 cursor-pointer"
                     title="Tüm Materyalleri Kapat ve Tahtayı Temizle"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <span>Tahtayı Temizle</span>
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -1606,7 +1799,7 @@ export const KumandaPage: React.FC = () => {
                   ? 'bg-white dark:bg-[#0b1a2d] border-[#0284c7] text-[#0284c7] dark:text-[#38bdf8] rotate-90'
                   : 'bg-gradient-to-tr from-[#0284c7] to-[#38bdf8] border-white/20 text-white'
               }`}
-              title="Hızlı İşlemler (Temizle, Döndür, Kamera)"
+              title="Hızlı İşlemler & Alt Menüler"
             >
               {isQuickActionOpen ? (
                 <X className="w-6 h-6" />
@@ -1620,70 +1813,89 @@ export const KumandaPage: React.FC = () => {
 
       {/* ERGONOMIC FIXED BOTTOM NAVIGATION BAR */}
       {isConnected && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-t border-slate-200 dark:border-[#193654] px-2 py-2 max-w-md mx-auto flex items-center justify-around shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-t border-slate-200 dark:border-[#193654] px-1 py-1.5 max-w-md mx-auto grid grid-cols-6 items-center shadow-lg">
           <button
             onClick={() => {
               triggerHaptic(20);
               setActiveTab('controls');
+              setIsQuickActionOpen(false);
             }}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
               activeTab === 'controls' ? 'text-[#0284c7] dark:text-[#38bdf8] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Camera className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px]">Kumanda</span>
+            <span className="text-[10px] whitespace-nowrap">Kumanda</span>
           </button>
 
           <button
             onClick={() => {
               triggerHaptic(20);
               setActiveTab('drawing');
+              setIsQuickActionOpen(false);
             }}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
               activeTab === 'drawing' ? 'text-emerald-600 dark:text-[#10b981] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <PenTool className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px]">El Çizimi</span>
+            <span className="text-[10px] whitespace-nowrap">Çizim</span>
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic(20);
+              setActiveTab('mouse');
+              setIsQuickActionOpen(false);
+            }}
+            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'mouse' ? 'text-indigo-600 dark:text-indigo-400 font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Mouse className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] whitespace-nowrap">Fare</span>
           </button>
 
           <button
             onClick={() => {
               triggerHaptic(20);
               setActiveTab('laser');
+              setIsQuickActionOpen(false);
             }}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
               activeTab === 'laser' ? 'text-[#e54c4c] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Crosshair className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px]">Lazer</span>
+            <span className="text-[10px] whitespace-nowrap">Lazer</span>
           </button>
 
           <button
             onClick={() => {
               triggerHaptic(20);
               setActiveTab('classroom');
+              setIsQuickActionOpen(false);
             }}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
               activeTab === 'classroom' ? 'text-amber-600 dark:text-[#e5933a] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Timer className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px]">Sınıf</span>
+            <span className="text-[10px] whitespace-nowrap">Sınıf</span>
           </button>
 
           <button
             onClick={() => {
               triggerHaptic(20);
               setActiveTab('note');
+              setIsQuickActionOpen(false);
             }}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
               activeTab === 'note' ? 'text-[#0284c7] dark:text-[#38bdf8] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <MessageSquare className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px]">Notlar</span>
+            <span className="text-[10px] whitespace-nowrap">Notlar</span>
           </button>
         </nav>
       )}

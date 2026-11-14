@@ -25,6 +25,7 @@ interface PDFViewerProps {
   onTotalPagesLoaded?: (totalPages: number) => void;
   rotation: number;
   zoomLevel: number;
+  panOffset?: { x: number; y: number };
   flipH: boolean;
   flipV: boolean;
   filterStyle?: React.CSSProperties;
@@ -40,6 +41,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   onTotalPagesLoaded,
   rotation,
   zoomLevel,
+  panOffset = { x: 0, y: 0 },
   flipH,
   flipV,
   filterStyle,
@@ -272,9 +274,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
 
         {!isLoadingDoc && !loadError && (
           <div
-            className="relative flex items-center justify-center transition-transform duration-200"
+            className="relative flex items-center justify-center transition-transform duration-150 ease-out"
             style={{
-              transform: `rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+              transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
               transformOrigin: 'center center',
               ...filterStyle,
             }}

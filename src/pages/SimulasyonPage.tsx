@@ -66,7 +66,7 @@ export const SimulasyonPage: React.FC<SimulasyonPageProps> = ({ onBackToHome }) 
             <Monitor className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
             <span>Akıllı Tahta Ekranı (Sol Taraf)</span>
           </div>
-          <TahtaPage />
+          <TahtaPage isEmbedded />
         </div>
 
         {/* Right: Phone Frame Simulation */}
