@@ -15,8 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   GripVertical,
-  Move,
-  Layers
+  Move
 } from 'lucide-react';
 import { BoardBackgroundMode, SyncedStroke, ToolMode, NormalizedPoint } from '../types/protocol';
 
@@ -37,8 +36,6 @@ interface WhiteboardCanvasProps {
   onStrokeComplete?: (stroke: SyncedStroke) => void;
   onUndoCallback?: () => void;
   onClearCallback?: () => void;
-  hasActiveFile?: boolean;
-  onDownloadActiveFile?: () => void;
 }
 
 const PRESET_COLORS = [
@@ -71,8 +68,6 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   onStrokeComplete,
   onUndoCallback,
   onClearCallback,
-  hasActiveFile = false,
-  onDownloadActiveFile,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -82,9 +77,9 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   const [localStrokes, setLocalStrokes] = useState<SyncedStroke[]>([]);
   const [redoStack, setRedoStack] = useState<SyncedStroke[]>([]);
   
-  // Professional Z-Kitap Floating & Draggable Toolbar States
+  // Professional Z-Kitap Floating & Draggable Toolbar States (Vertical Left by default)
   const [showToolbar, setShowToolbar] = useState(true);
-  const [isVerticalLayout, setIsVerticalLayout] = useState<boolean>(false);
+  const [isVerticalLayout, setIsVerticalLayout] = useState<boolean>(true);
   const [toolbarPos, setToolbarPos] = useState<{ x: number; y: number } | null>(null);
 
   const toolbarContainerRef = useRef<HTMLDivElement | null>(null);
@@ -490,7 +485,15 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
         top: `${toolbarPos.y}px`,
       };
     }
-    // Default position: centered at top of stage so bottom docks and PDF controls never collide
+    // Default vertical position: cleanly anchored on the left side of the board stage
+    if (isVerticalLayout) {
+      return {
+        left: '0.85rem',
+        top: '50%',
+        transform: 'translateY(-50%)',
+      };
+    }
+    // Default horizontal position: centered at top of stage
     return {
       left: '50%',
       top: '0.85rem',
@@ -537,65 +540,69 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
         style={{ touchAction: 'none' }}
       />
 
-      {/* Professional Draggable Z-Kitap Toolbar (Light & Dark Mode Compatible) */}
+      {/* Professional Draggable Z-Kitap Toolbar (Vertical Left Default, Light & Dark Mode Compatible) */}
       {showToolbar && (
         <div
           ref={toolbarContainerRef}
           style={getToolbarStyle()}
-          className={`absolute z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border border-slate-200 dark:border-[#193654] p-2 rounded-xl shadow-xl text-slate-800 dark:text-white transition-shadow duration-150 select-none ${
+          className={`absolute z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border border-slate-200 dark:border-[#193654] p-2 rounded-2xl shadow-xl text-slate-800 dark:text-white transition-shadow duration-150 select-none ${
             isVerticalLayout 
-              ? 'flex flex-col items-center gap-2 max-h-[85vh] overflow-y-auto w-14' 
+              ? 'flex flex-col items-stretch gap-2 max-h-[calc(100vh-7.5rem)] overflow-y-auto w-[106px]' 
               : 'flex flex-wrap items-center gap-2 max-w-[96vw]'
           }`}
         >
-          {/* 1. Drag Handle for Z-Kitap Floating Movement */}
-          <div
-            onPointerDown={handleDragStart}
-            onPointerMove={handleDragMove}
-            onPointerUp={handleDragEnd}
-            onPointerCancel={handleDragEnd}
-            className={`flex items-center justify-center p-1.5 rounded-lg bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white cursor-grab active:cursor-grabbing hover:bg-slate-200 dark:hover:bg-[#10243b] border border-slate-200 dark:border-[#193654] transition-colors touch-none ${
-              isVerticalLayout ? 'w-full py-1' : 'px-2'
-            }`}
-            title="Taşımak için basılı tutup ekranda istediğiniz yere sürükleyin"
-          >
-            <GripVertical className="w-4 h-4 shrink-0" />
-            {!isVerticalLayout && <span className="text-[10px] font-bold tracking-wider ml-1 hidden sm:inline">Z-KİTAP</span>}
+          {/* 1. Drag Handle & Orientation Toggle */}
+          <div className={`flex items-center gap-1 ${isVerticalLayout ? 'w-full justify-between' : ''}`}>
+            <div
+              onPointerDown={handleDragStart}
+              onPointerMove={handleDragMove}
+              onPointerUp={handleDragEnd}
+              onPointerCancel={handleDragEnd}
+              className={`flex items-center justify-center p-1.5 rounded-lg bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white cursor-grab active:cursor-grabbing hover:bg-slate-200 dark:hover:bg-[#10243b] border border-slate-200 dark:border-[#193654] transition-colors touch-none ${
+                isVerticalLayout ? 'flex-1 py-1' : 'px-2'
+              }`}
+              title="Taşımak için basılı tutup ekranda istediğiniz yere sürükleyin"
+            >
+              <GripVertical className="w-4 h-4 shrink-0" />
+              <span className="text-[10px] font-bold tracking-wider ml-1">Z-KİTAP</span>
+            </div>
+
+            <button
+              onClick={() => {
+                setToolbarPos(null);
+                setIsVerticalLayout((prev) => !prev);
+              }}
+              className="p-1.5 rounded-lg bg-slate-100 dark:bg-[#071322] hover:bg-slate-200 dark:hover:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#193654] transition-colors cursor-pointer shrink-0"
+              title={isVerticalLayout ? 'Yatay Çubuğa Geç' : 'Dikey Kenar Çubuğuna Geç'}
+            >
+              <Move className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          {/* Orientation Toggle (Yatay / Dikey) */}
-          <button
-            onClick={() => setIsVerticalLayout((prev) => !prev)}
-            className="p-1.5 rounded-lg bg-slate-100 dark:bg-[#071322] hover:bg-slate-200 dark:hover:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#193654] transition-colors cursor-pointer"
-            title={isVerticalLayout ? 'Yatay Çubuğa Geç' : 'Dikey Kenar Çubuğuna Geç'}
-          >
-            <Move className="w-4 h-4" />
-          </button>
-
-          <div className={isVerticalLayout ? 'w-8 h-px bg-slate-200 dark:bg-[#193654] my-0.5' : 'w-px h-6 bg-slate-200 dark:bg-[#193654] mx-0.5'} />
+          <div className={isVerticalLayout ? 'w-full h-px bg-slate-200 dark:bg-[#193654]' : 'w-px h-6 bg-slate-200 dark:bg-[#193654] mx-0.5'} />
 
           {/* 2. Drawing master toggle */}
           <button
             onClick={onToggleDrawing}
             title={isDrawingEnabled ? 'Çizimi Duraklat' : 'Kalemi Aç'}
-            className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer whitespace-nowrap shrink-0 ${
+            className={`px-2 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold cursor-pointer whitespace-nowrap shrink-0 ${
               isDrawingEnabled 
                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-[#10b981] border border-emerald-500/30' 
-                : 'bg-slate-100 dark:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+                : 'bg-slate-100 dark:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] border border-slate-200 dark:border-[#193654] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <PenTool className="w-4 h-4 shrink-0" />
-            {!isVerticalLayout && <span className="hidden sm:inline">{isDrawingEnabled ? 'Kalem Açık' : 'Kapalı'}</span>}
+            <PenTool className="w-3.5 h-3.5 shrink-0" />
+            <span>{isDrawingEnabled ? 'Kalem Açık' : 'Kapalı'}</span>
           </button>
 
           {/* 3. Tool Modes */}
-          <div className={`bg-slate-100 dark:bg-[#071322] p-1 rounded-lg border border-slate-200 dark:border-[#193654] ${
-            isVerticalLayout ? 'flex flex-col gap-1' : 'flex items-center gap-1'
+          <div className={`bg-slate-100 dark:bg-[#071322] p-1 rounded-xl border border-slate-200 dark:border-[#193654] ${
+            isVerticalLayout ? 'grid grid-cols-2 gap-1' : 'flex items-center gap-1'
           }`}>
             <button
               onClick={() => setTool('pen')}
               title="Serbest Kalem"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'pen' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -604,7 +611,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('highlighter')}
               title="Fosforlu Vurgu Kalemi"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'highlighter' ? 'bg-[#eab308] text-slate-950 font-bold shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -613,7 +620,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('line')}
               title="Düz Çizgi"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'line' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -622,7 +629,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('arrow')}
               title="Ok İşareti"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'arrow' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -631,7 +638,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('rect')}
               title="Dikdörtgen"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'rect' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -640,7 +647,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('circle')}
               title="Daire"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'circle' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -649,111 +656,133 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('eraser')}
               title="Silgi"
-              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+                isVerticalLayout ? 'col-span-2' : ''
+              } ${
                 tool === 'eraser' ? 'bg-[#dc2626] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Eraser className="w-4 h-4" />
+              {isVerticalLayout && <span className="text-[11px] font-semibold ml-1.5">Silgi</span>}
             </button>
           </div>
 
-          {/* 4. Color Palette & Custom Color Picker */}
+          {/* 4. Color Palette & Custom Color Picker (All 10 Colors + Custom Picker clearly visible) */}
           {tool !== 'eraser' && (
-            <div className={`bg-slate-100 dark:bg-[#071322] p-1.5 rounded-lg border border-slate-200 dark:border-[#193654] ${
+            <div className={`bg-slate-100 dark:bg-[#071322] p-1.5 rounded-xl border border-slate-200 dark:border-[#193654] ${
               isVerticalLayout ? 'flex flex-col gap-1.5' : 'flex items-center gap-1.5'
             }`}>
-              <div className={isVerticalLayout ? 'grid grid-cols-2 gap-1' : 'flex items-center gap-1.5'}>
-                {PRESET_COLORS.slice(0, isVerticalLayout ? 6 : 10).map((c) => (
+              {isVerticalLayout && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd] text-center">
+                  Renkler
+                </span>
+              )}
+              <div className={isVerticalLayout ? 'grid grid-cols-3 gap-1.5 place-items-center' : 'flex items-center gap-1.5'}>
+                {PRESET_COLORS.map((c) => (
                   <button
                     key={c.value}
                     onClick={() => setCurrentColor(c.value)}
                     title={c.name}
                     className={`w-5 h-5 rounded-full transition-transform border shrink-0 cursor-pointer ${
                       currentColor.toLowerCase() === c.value.toLowerCase()
-                        ? 'scale-125 ring-2 ring-[#0284c7] ring-offset-1 ring-offset-white dark:ring-offset-[#0b1a2d] border-white'
-                        : 'border-slate-300 dark:border-slate-600 opacity-85 hover:opacity-100'
+                        ? 'scale-115 ring-2 ring-[#0284c7] ring-offset-1 ring-offset-white dark:ring-offset-[#0b1a2d] border-white shadow-sm'
+                        : 'border-slate-300 dark:border-slate-600 opacity-90 hover:opacity-100 hover:scale-105'
                     }`}
                     style={{ backgroundColor: c.value }}
                   />
                 ))}
-              </div>
 
-              <label
-                className="relative flex items-center justify-center w-5 h-5 rounded-full cursor-pointer border border-slate-400 hover:border-[#0284c7] transition-all overflow-hidden shrink-0"
-                style={{
-                  background: 'conic-gradient(from 180deg at 50% 50%, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
-                }}
-                title="Özel Renk Seç (Renk Paleti)"
-              >
-                <input
-                  type="color"
-                  value={currentColor}
-                  onChange={(e) => setCurrentColor(e.target.value)}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                />
-              </label>
+                <label
+                  className="relative flex items-center justify-center w-5 h-5 rounded-full cursor-pointer border border-slate-400 hover:border-[#0284c7] transition-all overflow-hidden shrink-0"
+                  style={{
+                    background: 'conic-gradient(from 180deg at 50% 50%, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
+                  }}
+                  title="Özel Renk Seç (Renk Paleti)"
+                >
+                  <input
+                    type="color"
+                    value={currentColor}
+                    onChange={(e) => setCurrentColor(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </label>
+              </div>
             </div>
           )}
 
-          {/* 5. Pen Stroke Width Controls */}
+          {/* 5. Pen Stroke Width Controls (Clear Pixel Labels & Live Dot Preview) */}
           {tool !== 'eraser' && tool !== 'highlighter' && (
-            <div className={`bg-slate-100 dark:bg-[#071322] p-1.5 rounded-lg border border-slate-200 dark:border-[#193654] text-xs ${
-              isVerticalLayout ? 'flex flex-col items-center gap-1' : 'flex items-center gap-2'
+            <div className={`bg-slate-100 dark:bg-[#071322] p-1.5 rounded-xl border border-slate-200 dark:border-[#193654] text-xs ${
+              isVerticalLayout ? 'flex flex-col items-stretch gap-1.5' : 'flex items-center gap-2'
             }`}>
+              {isVerticalLayout && (
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd]">
+                    Piksel
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[#0284c7] dark:text-[#38bdf8] tabular-nums">
+                    {currentWidth}px
+                  </span>
+                </div>
+              )}
+
               <div className={isVerticalLayout ? 'grid grid-cols-2 gap-1' : 'flex items-center gap-1'}>
                 {PRESET_WIDTHS.map((w) => (
                   <button
                     key={w.value}
                     onClick={() => setCurrentWidth(w.value)}
-                    className={`px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold transition-colors cursor-pointer tabular-nums ${
+                    className={`px-1.5 py-1 rounded-md text-[11px] font-mono font-bold transition-colors cursor-pointer tabular-nums whitespace-nowrap flex items-center justify-center gap-1 ${
                       currentWidth === w.value
-                        ? 'bg-[#0284c7] text-white'
-                        : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-[#0284c7] text-white shadow-2xs'
+                        : 'bg-white dark:bg-[#0b1a2d] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#193654] hover:border-[#0284c7]'
                     }`}
+                    title={`Kalınlık: ${w.label}`}
                   >
                     {w.label}
                   </button>
                 ))}
               </div>
 
-              {!isVerticalLayout && (
-                <div className="hidden lg:flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-[#193654]">
-                  <input
-                    type="range"
-                    min="1"
-                    max="36"
-                    value={currentWidth}
-                    onChange={(e) => setCurrentWidth(Number(e.target.value))}
-                    className="w-16 h-1 bg-slate-300 dark:bg-[#10243b] rounded-lg appearance-none cursor-pointer accent-[#0284c7]"
-                    title={`Fırça Kalınlığı: ${currentWidth}px`}
-                  />
+              <div className={`flex items-center gap-1.5 ${
+                isVerticalLayout
+                  ? 'pt-1 border-t border-slate-200 dark:border-[#193654]'
+                  : 'hidden lg:flex pl-1.5 border-l border-slate-200 dark:border-[#193654]'
+              }`}>
+                <input
+                  type="range"
+                  min="1"
+                  max="36"
+                  value={currentWidth}
+                  onChange={(e) => setCurrentWidth(Number(e.target.value))}
+                  className={`${isVerticalLayout ? 'w-full' : 'w-16'} h-1 bg-slate-300 dark:bg-[#10243b] rounded-lg appearance-none cursor-pointer accent-[#0284c7]`}
+                  title={`Fırça Kalınlığı: ${currentWidth}px`}
+                />
+                <div 
+                  className="w-5 h-5 rounded-full flex items-center justify-center bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shrink-0"
+                  title={`Önizleme: ${currentWidth}px`}
+                >
                   <div 
-                    className="w-5 h-5 rounded-full flex items-center justify-center bg-white dark:bg-[#071322] border border-slate-200 dark:border-[#193654]"
-                    title={`Önizleme: ${currentWidth}px`}
-                  >
-                    <div 
-                      className="rounded-full transition-all"
-                      style={{
-                        width: `${Math.min(18, Math.max(3, currentWidth))}px`,
-                        height: `${Math.min(18, Math.max(3, currentWidth))}px`,
-                        backgroundColor: currentColor,
-                      }}
-                    />
-                  </div>
+                    className="rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(16, Math.max(3, currentWidth))}px`,
+                      height: `${Math.min(16, Math.max(3, currentWidth))}px`,
+                      backgroundColor: currentColor,
+                    }}
+                  />
                 </div>
-              )}
+              </div>
             </div>
           )}
 
-          <div className={isVerticalLayout ? 'w-8 h-px bg-slate-200 dark:bg-[#193654] my-0.5' : 'w-px h-6 bg-slate-200 dark:bg-[#193654] mx-0.5'} />
+          <div className={isVerticalLayout ? 'w-full h-px bg-slate-200 dark:bg-[#193654]' : 'w-px h-6 bg-slate-200 dark:bg-[#193654] mx-0.5'} />
 
-          {/* 6. Undo / Redo / Clear & One-Touch Computer Download */}
-          <div className={`flex items-center gap-1 ${isVerticalLayout ? 'flex-col' : ''}`}>
+          {/* 6. Undo / Redo / Clear & Canvas PNG Save */}
+          <div className={`${isVerticalLayout ? 'grid grid-cols-2 gap-1' : 'flex items-center gap-1'}`}>
             <button
               onClick={handleUndo}
               disabled={localStrokes.length === 0}
               title="Geri Al"
-              className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="p-1.5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -761,7 +790,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onClick={handleRedo}
               disabled={redoStack.length === 0}
               title="İleri Al"
-              className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="p-1.5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <RotateCw className="w-4 h-4" />
             </button>
@@ -769,43 +798,30 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onClick={handleClearAll}
               disabled={allStrokes.length === 0}
               title="Tüm Çizimleri Temizle"
-              className="p-1.5 text-[#dc2626] hover:text-rose-700 disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="p-1.5 flex items-center justify-center text-[#dc2626] hover:text-rose-700 disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button
               onClick={handleDownload}
               disabled={allStrokes.length === 0}
-              title="Çizimi PNG Olarak Bilgisayara İndir"
-              className="p-1.5 text-[#0284c7] dark:text-[#38bdf8] hover:text-[#0369a1] disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              title="Çizimi PNG Olarak Kaydet"
+              className="p-1.5 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] hover:text-[#0369a1] disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <Download className="w-4 h-4" />
             </button>
-
-            {/* One-Touch Active File Download Button in Floating Z-Kitap Toolbar */}
-            {hasActiveFile && onDownloadActiveFile && (
-              <button
-                onClick={onDownloadActiveFile}
-                title="Açık Olan Dosyayı (PDF / Görsel / Video) Tahtaya İndir"
-                className={`flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer whitespace-nowrap shrink-0 ${
-                  isVerticalLayout ? 'p-1.5' : 'px-3 py-1.5'
-                }`}
-              >
-                <Download className="w-3.5 h-3.5 shrink-0" />
-                {!isVerticalLayout && <span>Tahtaya İndir</span>}
-              </button>
-            )}
           </div>
 
-          <div className={isVerticalLayout ? 'w-8 h-px bg-slate-200 dark:bg-[#193654] my-0.5' : 'w-px h-6 bg-slate-200 dark:bg-[#193654] mx-0.5'} />
+          <div className={isVerticalLayout ? 'w-full h-px bg-slate-200 dark:bg-[#193654]' : 'w-px h-6 bg-slate-200 dark:bg-[#193654] mx-0.5'} />
 
           {/* 7. Minimize / Fold Button */}
           <button
             onClick={() => setShowToolbar(false)}
             title="Z-Kitap Çubuğunu Gizle"
-            className="p-1.5 text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+            className="p-1.5 flex items-center justify-center gap-1 text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer text-[11px] font-semibold"
           >
             <ChevronDown className="w-4 h-4" />
+            {isVerticalLayout && <span>Gizle</span>}
           </button>
         </div>
       )}
@@ -814,7 +830,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
       {!showToolbar && (
         <button
           onClick={() => setShowToolbar(true)}
-          className="absolute bottom-6 right-6 z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-[#193654] transition-all flex items-center gap-2 text-xs font-bold active:scale-95 animate-in zoom-in-95 duration-150 cursor-pointer"
+          className="absolute bottom-4 left-4 z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-[#193654] transition-all flex items-center gap-2 text-xs font-bold active:scale-95 animate-in zoom-in-95 duration-150 cursor-pointer"
           title="Z-Kitap Kalem Araçlarını Aç"
         >
           <div

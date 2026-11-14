@@ -1376,21 +1376,7 @@ export const TahtaPage: React.FC = () => {
 
         {/* 3. RECEIVED MEDIA ITEM (Image, 200MB High-Res PDF Viewer, Video) */}
         {!cameraStream && currentMedia && (
-          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 pb-20">
-            {/* Floating Top-Right Quick Download Bar on Board Stage */}
-            <div className="absolute top-3 right-4 z-30 flex items-center gap-2 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border border-slate-200 dark:border-[#193654] pl-3 pr-2 py-1.5 rounded-xl shadow-lg">
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[180px]" title={currentMedia.originalFileName || currentMedia.name}>
-                {currentMedia.originalFileName || currentMedia.name}
-              </span>
-              <button
-                onClick={handleDownloadCurrentMedia}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer"
-                title="Tahtada Açık Olan Dosyayı Tahtaya İndir"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Tahtaya İndir</span>
-              </button>
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 pb-20 md:pl-32">
 
             {currentMedia.type === 'video' ? (
               <video
@@ -1446,7 +1432,7 @@ export const TahtaPage: React.FC = () => {
           </div>
         )}
 
-        {/* 4. TRANSPARENT WHITEBOARD DRAWING CANVAS LAYER (Bi-directional Sync + One-Touch File Download) */}
+        {/* 4. TRANSPARENT WHITEBOARD DRAWING CANVAS LAYER (Bi-directional Sync) */}
         <WhiteboardCanvas
           bgMode={bgMode}
           isDrawingEnabled={isDrawingEnabled}
@@ -1463,8 +1449,6 @@ export const TahtaPage: React.FC = () => {
             setSyncedStrokes([]);
             sendToRemote({ type: 'DRAW_CLEAR' });
           }}
-          hasActiveFile={Boolean(currentMedia || cameraStream)}
-          onDownloadActiveFile={handleDownloadCurrentMedia}
           className="absolute inset-0 z-20"
         />
 
@@ -1567,16 +1551,6 @@ export const TahtaPage: React.FC = () => {
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
             </div>
-
-            {/* Direct Download to Smartboard Button */}
-            <button
-              onClick={handleDownloadCurrentMedia}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer"
-              title="Açık Dosyayı Tahtaya İndir"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Tahtaya İndir</span>
-            </button>
 
             {/* Clear Screen */}
             <button

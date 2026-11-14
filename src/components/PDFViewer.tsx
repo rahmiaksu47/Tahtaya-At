@@ -8,8 +8,6 @@ import {
   ChevronUp,
   ChevronDown,
   Loader2,
-  Sparkles,
-  Check,
 } from 'lucide-react';
 import {
   loadPdfDocument,
@@ -57,7 +55,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   // Thumbnail Filmstrip Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
-  const [downloadedFeedback, setDownloadedFeedback] = useState<boolean>(false);
 
   const mainCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const filmstripScrollRef = useRef<HTMLDivElement | null>(null);
@@ -437,29 +434,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
               <Grid className="w-3.5 h-3.5" />
               <span>Küçük Resimler</span>
               {isDrawerOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
-            </button>
-
-            {/* Quick Local Download Button */}
-            <button
-              onClick={() => {
-                onDownloadFile();
-                setDownloadedFeedback(true);
-                setTimeout(() => setDownloadedFeedback(false), 2000);
-              }}
-              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0 shadow-xs"
-              title="Açık PDF Dosyasını Tahtaya İndir"
-            >
-              {downloadedFeedback ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Tahtaya İndirildi</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Tahtaya İndir</span>
-                </>
-              )}
             </button>
           </div>
         </div>
