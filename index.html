@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#071322" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tahtaya At" />
+
+    <!-- SEO Meta Tags -->
+    <title>Tahtaya At Pro – MEB Akıllı Tahta &amp; Mobil Kumanda Sistemi</title>
+    <meta
+      name="description"
+      content="Akıllı tahta ve öğretmen telefonu arasında WebRTC ile kablosuz dosya/PDF aktarımı, canlı doküman kamerası ve Z-Kitap uzaktan kumandası sağlayan kurumsal eğitim platformu."
+    />
+    <meta name="keywords" content="akıllı tahta, pardus etap, fatih projesi, uzaktan kumanda, doküman kamerası, tahtaya at, webrtc, z-kitap, öğretmen araçları" />
+    <meta name="author" content="Tahtaya At Pro" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+
+    <!-- OpenGraph Social Share Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tahtaya At Pro" />
+    <meta property="og:title" content="Tahtaya At Pro – MEB Akıllı Tahta &amp; Mobil Kumanda Sistemi" />
+    <meta
+      property="og:description"
+      content="Telefonunuzdaki soru ve PDF kitapları kablosuz tahtaya yansıtın, doküman kamerasıyla canlı ders anlatın ve taşınabilir Z-Kitap kalemiyle soruları çözün."
+    />
+    <meta property="og:image" content="/icons/icon-512.svg" />
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tahtaya At Pro – Akıllı Tahta &amp; Mobil Kumanda" />
+    <meta
+      name="twitter:description"
+      content="Telefonunuzdaki soru ve PDF kitapları kablosuz tahtaya yansıtın, doküman kamerasıyla canlı ders anlatın ve taşınabilir Z-Kitap kalemiyle soruları çözün."
+    />
+    <meta name="twitter:image" content="/icons/icon-512.svg" />
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Tahtaya At Pro",
+        "alternateName": "Tahtaya At",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All (Web, Pardus ETAP, Windows, Android, iOS)",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "TRY"
+        },
+        "description": "Akıllı tahta ve öğretmen telefonu arasında WebRTC ile kablosuz dosya aktarımı, canlı doküman kamerası ve Z-Kitap uzaktan kumanda sistemi.",
+        "inLanguage": "tr",
+        "featureList": [
+          "Kablosuz 200 MB PDF ve görsel aktarımı",
+          "Canlı telefon doküman kamerası akışı",
+          "Taşınabilir Z-Kitap kalem araç çubuğu",
+          "1-30 Öğrenci kura seçicisi",
+          "Soru kronometresi ve akıllı zar",
+          "Tahtayı karartma ve dikkat modu",
+          "PWA tek tıkla kurulum desteği"
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.log('SW register notice:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

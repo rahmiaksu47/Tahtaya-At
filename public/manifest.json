@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "name": "Tahtaya At Pro – Akıllı Tahta & Mobil Kumanda",
+  "short_name": "Tahtaya At",
+  "description": "Akıllı tahta ile öğretmen telefonu arasında kablosuz dosya aktarımı, doküman kamerası ve Z-Kitap uzaktan kumanda sistemi.",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#071322",
+  "background_color": "#071322",
+  "categories": ["education", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

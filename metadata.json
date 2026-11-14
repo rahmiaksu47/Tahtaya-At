@@ -1,0 +1,6 @@
+{
+  "name": "Tahtaya At Pro",
+  "description": "Akıllı tahta ve öğretmen telefonu arasında WebRTC ile kablosuz dosya/PDF aktarımı, canlı doküman kamerası ve Z-Kitap uzaktan kumandası sağlayan kurumsal eğitim platformu.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
