@@ -117,6 +117,7 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
           facingMode: { ideal: targetFacing },
           width: { ideal: widthIdeal },
           height: { ideal: heightIdeal },
+          aspectRatio: { ideal: 16 / 9 },
         },
         audio: false,
       });
@@ -158,13 +159,24 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
   const handleCapturePhotoAndSend = () => {
     if (!previewVideoRef.current || !onPhotoCaptured) return;
     const video = previewVideoRef.current;
+    const vw = video.videoWidth || 1280;
+    const vh = video.videoHeight || 720;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    if (vh > vw) {
+      const cropH = Math.round((vw * 9) / 16);
+      const sy = Math.max(0, Math.round((vh - cropH) / 2));
+      canvas.width = vw;
+      canvas.height = cropH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, sy, vw, cropH, 0, 0, vw, cropH);
+    } else {
+      canvas.width = vw;
+      canvas.height = vh;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, vw, vh);
+    }
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -385,7 +397,7 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
           {/* STATE 3: GRANTED (Live Camera Preview & One-Touch Launch) */}
           {status === 'granted' && (
             <div className="flex flex-col gap-3">
-              <div className="relative w-full h-56 rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-[#193654] shadow-inner">
+              <div className="relative w-full aspect-video max-h-64 rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-[#193654] shadow-inner">
                 <video
                   ref={previewVideoRef}
                   autoPlay

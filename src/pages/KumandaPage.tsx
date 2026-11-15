@@ -544,6 +544,7 @@ export const KumandaPage: React.FC = () => {
           facingMode: { ideal: facing },
           width: { ideal: 1280 },
           height: { ideal: 720 },
+          aspectRatio: { ideal: 16 / 9 },
         },
         audio: false,
       });
@@ -584,12 +585,28 @@ export const KumandaPage: React.FC = () => {
 
     try {
       const video = phonePreviewVideoRef.current;
+      const vw = video.videoWidth || 1280;
+      const vh = video.videoHeight || 720;
       const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
-      const ctx = canvas.getContext('2d');
+      let ctx: CanvasRenderingContext2D | null = null;
+      if (vh > vw) {
+        const cropH = Math.round((vw * 9) / 16);
+        const sy = Math.max(0, Math.round((vh - cropH) / 2));
+        canvas.width = vw;
+        canvas.height = cropH;
+        ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, sy, vw, cropH, 0, 0, vw, cropH);
+        }
+      } else {
+        canvas.width = vw;
+        canvas.height = vh;
+        ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, vw, vh);
+        }
+      }
       if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const snapshot = canvas.toDataURL('image/jpeg', 0.85);
         sendMessage({
           type: 'FREEZE_CAMERA_COMMAND',
@@ -1070,7 +1087,7 @@ export const KumandaPage: React.FC = () => {
                   </div>
 
                   {isCameraActive && (
-                    <div className="relative w-full h-40 bg-black rounded-xl overflow-hidden border border-[#e54c4c]/50">
+                    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-[#e54c4c]/50">
                       <video
                         ref={phonePreviewVideoRef}
                         autoPlay

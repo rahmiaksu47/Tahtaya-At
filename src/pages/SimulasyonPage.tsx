@@ -59,10 +59,10 @@ export const SimulasyonPage: React.FC<SimulasyonPageProps> = ({ onBackToHome }) 
       </header>
 
       {/* Split Workspace */}
-      <div key={reloadKey} className="flex-1 w-full h-full flex flex-col lg:flex-row overflow-hidden">
+      <div key={reloadKey} className="flex-1 w-full min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
         {/* Left: Smartboard */}
-        <div className="flex-1 h-full relative border-r border-slate-200 dark:border-[#193654] overflow-hidden flex flex-col">
-          <div className="absolute top-2 left-2 z-40 bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] px-3 py-1 rounded-xl text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <div className="w-full lg:flex-1 min-h-[560px] lg:min-h-0 lg:h-full relative border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-[#193654] overflow-hidden flex flex-col shrink-0 lg:shrink">
+          <div className="absolute top-2 left-2 z-40 hidden sm:flex bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] px-3 py-1 rounded-xl text-[11px] font-bold text-slate-700 dark:text-slate-300 items-center gap-1.5 shadow-sm">
             <Monitor className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
             <span>Akıllı Tahta Ekranı (Sol Taraf)</span>
           </div>
@@ -70,7 +70,7 @@ export const SimulasyonPage: React.FC<SimulasyonPageProps> = ({ onBackToHome }) 
         </div>
 
         {/* Right: Phone Frame Simulation */}
-        <div className="w-full lg:w-[430px] h-full bg-slate-100 dark:bg-[#0b1a2d] border-l border-slate-200 dark:border-[#193654] flex flex-col items-center justify-center p-3 lg:p-4 overflow-y-auto transition-colors">
+        <div className="w-full lg:w-[430px] lg:h-full shrink-0 bg-slate-100 dark:bg-[#0b1a2d] border-l border-slate-200 dark:border-[#193654] flex flex-col items-center justify-center p-3 lg:p-4 overflow-y-auto transition-colors">
           <div className="w-full max-w-sm flex items-center justify-between mb-2 px-1">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <Smartphone className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />

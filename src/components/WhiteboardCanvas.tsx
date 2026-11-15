@@ -36,6 +36,7 @@ interface WhiteboardCanvasProps {
   onStrokeComplete?: (stroke: SyncedStroke) => void;
   onUndoCallback?: () => void;
   onClearCallback?: () => void;
+  hideToolbarOnMobile?: boolean;
 }
 
 const PRESET_COLORS = [
@@ -68,6 +69,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   onStrokeComplete,
   onUndoCallback,
   onClearCallback,
+  hideToolbarOnMobile = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -547,6 +549,8 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
           ref={toolbarContainerRef}
           style={getToolbarStyle()}
           className={`absolute z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border border-slate-200 dark:border-[#193654] p-2 rounded-2xl shadow-xl text-slate-800 dark:text-white transition-shadow duration-150 select-none ${
+            hideToolbarOnMobile ? 'max-md:hidden ' : ''
+          }${
             isVerticalLayout 
               ? 'flex flex-col items-stretch gap-2 max-h-[calc(100vh-7.5rem)] overflow-y-auto w-[106px]' 
               : 'flex flex-wrap items-center gap-2 max-w-[96vw]'
@@ -831,7 +835,9 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
       {!showToolbar && (
         <button
           onClick={() => setShowToolbar(true)}
-          className="absolute bottom-4 left-4 z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-[#193654] transition-all flex items-center gap-2 text-xs font-bold active:scale-95 animate-in zoom-in-95 duration-150 cursor-pointer"
+          className={`absolute bottom-4 left-4 z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-[#193654] transition-all flex items-center gap-2 text-xs font-bold active:scale-95 animate-in zoom-in-95 duration-150 cursor-pointer ${
+            hideToolbarOnMobile ? 'max-md:hidden' : ''
+          }`}
           title="Z-Kitap Kalem Araçlarını Aç"
         >
           <div

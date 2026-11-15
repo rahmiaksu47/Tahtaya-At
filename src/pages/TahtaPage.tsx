@@ -151,6 +151,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
 
   // Live Camera stream
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [isCameraLandscape, setIsCameraLandscape] = useState<boolean>(true);
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const activeCallRef = useRef<MediaConnection | null>(null);
@@ -380,12 +381,28 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
 
     if (cameraStreamRef.current && videoRef.current) {
       const video = videoRef.current;
+      const vw = video.videoWidth || 1280;
+      const vh = video.videoHeight || 720;
       const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
-      const ctx = canvas.getContext('2d');
+      let ctx: CanvasRenderingContext2D | null = null;
+      if (isCameraLandscape && vh > vw) {
+        const cropH = Math.round((vw * 9) / 16);
+        const sy = Math.max(0, Math.round((vh - cropH) / 2));
+        canvas.width = vw;
+        canvas.height = cropH;
+        ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, sy, vw, cropH, 0, 0, vw, cropH);
+        }
+      } else {
+        canvas.width = vw;
+        canvas.height = vh;
+        ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, vw, vh);
+        }
+      }
       if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/png');
         await downloadMediaItemToComputer({
           id: `cam-${Date.now()}`,
@@ -403,7 +420,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
         });
       }
     }
-  }, [addToast]);
+  }, [addToast, isCameraLandscape]);
 
   // Local file upload directly on the smartboard (up to 200 MB PDF / image / video)
   const handleLocalBoardFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -621,6 +638,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
           call.answer();
 
           call.on('stream', (remoteStream) => {
+            setIsCameraLandscape(true);
             setCameraStream(remoteStream);
             sounds.playReceive();
             addToast({
@@ -1372,17 +1390,17 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
       />
 
       {/* Top Header / Notion & Stripe Crisp Corporate Navigation Bar */}
-      <header className="relative z-30 flex items-center justify-between px-5 py-2.5 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] transition-colors">
-        <div className="flex items-center gap-3.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-sm">
-              <School className="w-5 h-5 text-white" />
+      <header className="relative z-30 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] transition-colors">
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-sm shrink-0">
+              <School className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2 truncate">
                 Tahtaya At Pro
               </h1>
-              <p className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">MEB Fatih &amp; Pardus ETAP Akıllı Tahta</p>
+              <p className="hidden sm:block text-[11px] text-slate-500 dark:text-[#8ba3bd]">MEB Fatih &amp; Pardus ETAP Akıllı Tahta</p>
             </div>
           </div>
 
@@ -1397,16 +1415,16 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
           )}
 
           {/* Room PIN Display */}
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] px-3.5 py-1 rounded-xl">
-            <span className="text-[11px] uppercase font-semibold text-slate-500 dark:text-[#8ba3bd]">Oda Kodu:</span>
-            <span className="text-base font-mono font-black tracking-widest text-emerald-600 dark:text-[#10b981]">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] px-2.5 sm:px-3.5 py-1 rounded-xl">
+            <span className="hidden sm:inline text-[11px] uppercase font-semibold text-slate-500 dark:text-[#8ba3bd]">Oda Kodu:</span>
+            <span className="text-sm sm:text-base font-mono font-black tracking-widest text-emerald-600 dark:text-[#10b981]">
               {roomPin || '------'}
             </span>
           </div>
         </div>
 
         {/* Center: Classroom Quick Tools Bar */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#10243b]/90 p-1 rounded-xl border border-slate-200 dark:border-[#193654]">
+        <div className="order-3 lg:order-2 w-full lg:w-auto overflow-x-auto flex items-center gap-1 bg-slate-100 dark:bg-[#10243b]/90 p-1 rounded-xl border border-slate-200 dark:border-[#193654]">
           <button
             onClick={() => boardFileInputRef.current?.click()}
             className="px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#071322] transition-colors cursor-pointer"
@@ -1518,7 +1536,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2">
+        <div className="order-2 lg:order-3 flex items-center gap-1.5 sm:gap-2">
           {connectionStatus === 'connected' ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-[#10b981] text-xs font-semibold">
               <span className="relative flex h-2 w-2">
@@ -1592,7 +1610,11 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             nudgePan(-e.deltaX, -e.deltaY);
           }
         }}
-        className="relative flex-1 w-full h-full overflow-hidden flex items-center justify-center"
+        className={`relative flex-1 w-full min-h-0 flex justify-center ${
+          !currentMedia && !cameraStream
+            ? 'overflow-y-auto items-start lg:items-center py-4 sm:py-6 px-3 sm:px-6'
+            : 'overflow-hidden items-center'
+        }`}
       >
         {/* Background Canvas Mode Styling */}
         <div 
@@ -1609,30 +1631,31 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
 
         {/* 1. WAITING / IDLE STAGE: Notion & Stripe High-Contrast Dashboard Card */}
         {!currentMedia && !cameraStream && (
-          <div className="relative z-10 max-w-4xl w-full mx-6 p-8 rounded-3xl bg-white dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] shadow-xl flex flex-col lg:flex-row items-center gap-8 animate-in zoom-in-95 duration-200">
+          <div className={`relative ${bgMode === 'transparent' ? 'z-[25]' : 'z-10'} max-w-4xl w-full p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] shadow-xl flex flex-col lg:flex-row items-center gap-5 lg:gap-8 my-auto animate-in zoom-in-95 duration-200`}>
             {/* Left: QR Code Card */}
-            <div className="flex flex-col items-center text-center p-6 bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] rounded-2xl shrink-0">
-              <div className="relative p-4 bg-white rounded-xl shadow-xs border border-slate-200 dark:border-[#0284c7]/40 mb-4">
+            <div className="w-full sm:w-auto flex flex-col items-center text-center p-4 sm:p-6 bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] rounded-2xl shrink-0">
+              <div className="relative p-3 sm:p-4 bg-white rounded-xl shadow-xs border border-slate-200 dark:border-[#0284c7]/40 mb-3 sm:mb-4 flex items-center justify-center">
                 {roomPin ? (
                   <QRCodeSVG
                     value={getKumandaUrl()}
-                    size={186}
+                    size={168}
                     level="H"
                     includeMargin={false}
+                    className="w-[152px] h-[152px] sm:w-[186px] sm:h-[186px] block"
                   />
                 ) : (
-                  <div className="w-[186px] h-[186px] bg-slate-100 animate-pulse rounded-lg" />
+                  <div className="w-[152px] h-[152px] sm:w-[186px] sm:h-[186px] bg-slate-100 animate-pulse rounded-lg" />
                 )}
               </div>
 
               <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd] font-semibold mb-1">
                 Akıllı Tahta Oda Kodu
               </span>
-              <div className="text-3xl font-mono font-black tracking-[0.25em] text-emerald-600 dark:text-[#10b981] bg-white dark:bg-[#0b1a2d] px-5 py-1.5 rounded-xl border border-slate-200 dark:border-[#193654] mb-3">
+              <div className="text-2xl sm:text-3xl font-mono font-black tracking-[0.25em] text-emerald-600 dark:text-[#10b981] bg-white dark:bg-[#0b1a2d] px-4 sm:px-5 py-1.5 rounded-xl border border-slate-200 dark:border-[#193654] mb-3">
                 {roomPin || '------'}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 <button
                   onClick={handleCopyLink}
                   className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] text-xs text-[#0284c7] dark:text-[#38bdf8] font-semibold transition-colors flex items-center gap-1 border border-slate-200 dark:border-[#193654]"
@@ -1655,18 +1678,18 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             {/* Right: Step-by-Step Institutional Instructions & Quick Launch */}
             <div className="flex-1 flex flex-col justify-between h-full">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#0284c7] dark:text-[#38bdf8] mb-2.5">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0284c7] dark:text-[#38bdf8] mb-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-[#10b981]" />
                   <span>MEB Doğrudan Güvenli P2P İletişimi</span>
                   <span aria-hidden="true">·</span>
                   <span>200 MB Yüksek Çözünürlüklü PDF</span>
                 </div>
 
-                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
+                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
                   Dersi Başlatmak İçin Telefonunuzu Eşleştirin
                 </h2>
-                <p className="text-xs text-slate-600 dark:text-[#8ba3bd] leading-relaxed mb-5">
-                  Öğretmen telefonunuzun kamerasıyla soldaki QR kodu okutun veya doğrudan akıllı tahta bilgisayarından 200 MB'a kadar PDF/görsel açın.
+                <p className="text-xs text-slate-600 dark:text-[#8ba3bd] leading-relaxed mb-4 sm:mb-5">
+                  Öğretmen telefonunuzun kamerasıyla QR kodu okutun veya doğrudan akıllı tahta bilgisayarından 200 MB'a kadar PDF/görsel açın.
                 </p>
 
                 {/* 3 Steps */}
@@ -1742,7 +1765,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
           </div>
         )}
 
-        {/* 2. LIVE DOCUMENT CAMERA STREAM */}
+        {/* 2. LIVE DOCUMENT CAMERA STREAM (Horizontal 16:9 Default) */}
         {cameraStream && (
           <div className="absolute inset-0 flex items-center justify-center overflow-hidden z-10 bg-black">
             <video
@@ -1750,7 +1773,11 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               autoPlay
               playsInline
               muted
-              className={`max-w-full max-h-full object-contain shadow-2xl ${isPanDragging ? 'transition-none' : 'transition-transform duration-200'}`}
+              className={`${
+                isCameraLandscape && rotation % 180 === 0
+                  ? 'w-full aspect-video max-h-full object-cover'
+                  : 'max-w-full max-h-full object-contain'
+              } shadow-2xl ${isPanDragging ? 'transition-none' : 'transition-transform duration-200'}`}
               style={{
                 transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
                 ...getFilterStyle(),
@@ -1759,7 +1786,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             {/* Live Indicator */}
             <div className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e54c4c] text-white text-xs font-bold shadow-lg animate-pulse">
               <span className="w-2 h-2 rounded-full bg-white" />
-              <span>CANLI DOKÜMAN KAMERASI</span>
+              <span>CANLI DOKÜMAN KAMERASI ({isCameraLandscape ? 'YATAY 16:9' : 'ORİJİNAL'})</span>
             </div>
           </div>
         )}
@@ -1869,7 +1896,8 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
         {/* 4. TRANSPARENT WHITEBOARD DRAWING CANVAS LAYER (Bi-directional Sync) */}
         <WhiteboardCanvas
           bgMode={bgMode}
-          isDrawingEnabled={isDrawingEnabled && !isPanMode}
+          isDrawingEnabled={isDrawingEnabled && !isPanMode && Boolean(currentMedia || cameraStream || bgMode !== 'transparent')}
+          hideToolbarOnMobile={!currentMedia && !cameraStream && bgMode === 'transparent'}
           onToggleDrawing={() => {
             setIsPanMode(false);
             setIsDrawingEnabled((prev) => !prev);
@@ -1941,6 +1969,20 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               >
                 <FlipHorizontal className="w-4 h-4" />
               </button>
+
+              {cameraStream && (
+                <button
+                  onClick={() => setIsCameraLandscape((prev) => !prev)}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors ${
+                    isCameraLandscape
+                      ? 'bg-[#0284c7] text-white border-[#0284c7]'
+                      : 'bg-slate-100 dark:bg-[#10243b] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654]'
+                  }`}
+                  title="Canlı Kamera Kadraj Modu (Yatay 16:9 / Orijinal)"
+                >
+                  {isCameraLandscape ? 'Yatay 16:9' : 'Orijinal Kadraj'}
+                </button>
+              )}
             </div>
 
             {/* Document Filters */}
