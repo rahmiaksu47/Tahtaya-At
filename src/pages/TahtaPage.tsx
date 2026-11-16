@@ -1470,17 +1470,6 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
             <span className="hidden xl:inline">{cameraStream ? 'Kamerayı Kapat' : 'Kamera'}</span>
           </button>
 
-          {(currentMedia || cameraStream) && (
-            <button
-              onClick={handleDownloadCurrentMedia}
-              className="min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-colors cursor-pointer animate-in zoom-in-95 duration-150"
-              title="Tahtada Açık Olan Dosyayı Tahtaya İndir"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Tahtaya İndir</span>
-            </button>
-          )}
-
           <div className="h-4 w-px bg-slate-200 dark:bg-[#193654] mx-0.5" />
 
           <button
@@ -2325,15 +2314,26 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
               )}
             </div>
 
-            {/* Clear Screen */}
-            <button
-              onClick={handleClearAll}
-              className="min-h-[36px] flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#e54c4c] hover:bg-red-600 text-xs font-bold text-white transition-colors shadow-xs shrink-0 whitespace-nowrap"
-              title="Dersi Bitir / Tahtayı Sıfırla (Kısayol: Esc)"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Temizle</span>
-            </button>
+            {/* Download to Board & Clear Screen */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleDownloadCurrentMedia}
+                className="min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition-colors shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+                title="Tahtada Açık Olan Dosyayı Tahtaya İndir"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Tahtaya İndir</span>
+              </button>
+
+              <button
+                onClick={handleClearAll}
+                className="min-h-[36px] flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#e54c4c] hover:bg-red-600 text-xs font-bold text-white transition-colors shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+                title="Dersi Bitir / Tahtayı Sıfırla (Kısayol: Esc)"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Temizle</span>
+              </button>
+            </div>
           </div>
         )}
 
