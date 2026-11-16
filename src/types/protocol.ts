@@ -36,6 +36,14 @@ export type DocumentFilterMode =
   | 'warm-reading'  // Soft sepia book paper
   | 'invert';       // Inverted for dark environment
 
+export type CameraAspectMode =
+  | '16:9'
+  | '4:3'
+  | '1:1'
+  | '9:16'
+  | 'original'
+  | 'fill';
+
 export type MediaFileType = 'image' | 'pdf' | 'video';
 
 export interface ReceivedMediaItem {
@@ -64,6 +72,7 @@ export type PeerMessage =
   | { type: 'LASER_MOVE'; laser: LaserPointerData }
   | { type: 'SET_BG_MODE'; mode: BoardBackgroundMode }
   | { type: 'SET_DOC_FILTER'; filter: DocumentFilterMode }
+  | { type: 'SET_CAMERA_ASPECT'; aspectMode: CameraAspectMode }
   | { type: 'QUICK_NOTE'; text: string; sender?: string }
   | { type: 'NAVIGATE_MEDIA'; direction: 'prev' | 'next' | number }
   | { type: 'ZOOM'; delta: number }

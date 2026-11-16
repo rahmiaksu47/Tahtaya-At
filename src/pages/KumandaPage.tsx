@@ -11,8 +11,7 @@ import {
   Video, 
   VideoOff, 
   Crosshair, 
-  Send, 
-  Smartphone, 
+  Send,
   ChevronRight, 
   RefreshCw, 
   AlertCircle, 
@@ -52,11 +51,18 @@ import { PWAInstallBanner } from '../components/PWAInstallBanner';
 import { CameraPermissionModal } from '../components/CameraPermissionModal';
 import { ThemeToggle } from '../context/ThemeContext';
 import { sounds } from '../utils/audio';
+import {
+  CAMERA_ASPECT_OPTIONS,
+  getCameraAspectOption,
+  getCameraPreviewBoxClass,
+  renderFramedVideoCanvas,
+} from '../utils/cameraFraming';
 import { 
   MediaFileType, 
   PeerMessage, 
   BoardBackgroundMode,
-  DocumentFilterMode 
+  DocumentFilterMode,
+  CameraAspectMode 
 } from '../types/protocol';
 
 interface KumandaPageProps {
@@ -80,6 +86,7 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
   // Document Camera & Permission Modal state
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment');
+  const [cameraAspectMode, setCameraAspectMode] = useState<CameraAspectMode>('16:9');
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
   const [cameraModalMode, setCameraModalMode] = useState<'live-stream' | 'photo-snap'>('live-stream');
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -509,9 +516,21 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
     e.target.value = '';
   };
 
+  // Change live camera framing aspect ratio and sync to smartboard
+  const handleCameraAspectChange = (mode: CameraAspectMode) => {
+    triggerHaptic(20);
+    setCameraAspectMode(mode);
+    sendMessage({ type: 'SET_CAMERA_ASPECT', aspectMode: mode });
+  };
+
   // Activate a granted MediaStream from CameraPermissionModal
-  const activateGrantedCameraStream = (stream: MediaStream, facing: 'environment' | 'user') => {
+  const activateGrantedCameraStream = (
+    stream: MediaStream,
+    facing: 'environment' | 'user',
+    aspectMode: CameraAspectMode = cameraAspectMode
+  ) => {
     setCameraFacing(facing);
+    setCameraAspectMode(aspectMode);
     localStreamRef.current = stream;
 
     const targetPin = connectedPin || pinDigits.join('');
@@ -519,6 +538,8 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
       const boardPeerId = `tahta-${targetPin}`;
       const call = peerRef.current.call(boardPeerId, stream);
       mediaCallRef.current = call;
+
+      sendMessage({ type: 'SET_CAMERA_ASPECT', aspectMode });
 
       call.on('close', () => {
         setIsCameraActive(false);
@@ -528,7 +549,7 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
     setIsCameraActive(true);
     addToast({
       type: 'info',
-      title: 'Kamera Yayında',
+      title: `Kamera Yayında (${getCameraAspectOption(aspectMode).shortLabel})`,
       message: 'Telefon kamerasından canlı video akışı tahtaya yansıtılıyor.',
     });
   };
@@ -545,17 +566,18 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
   };
 
   const startDocumentCamera = async (facing: 'environment' | 'user') => {
+    const targetRatio = getCameraAspectOption(cameraAspectMode).targetRatio;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: facing },
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          aspectRatio: { ideal: 16 / 9 },
+          ...(targetRatio ? { aspectRatio: { ideal: targetRatio } } : {}),
         },
         audio: false,
       });
-      activateGrantedCameraStream(stream, facing);
+      activateGrantedCameraStream(stream, facing, cameraAspectMode);
     } catch (err) {
       console.error('Camera error:', err);
       setIsCameraActive(false);
@@ -591,29 +613,8 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
     triggerHaptic([30, 40]);
 
     try {
-      const video = phonePreviewVideoRef.current;
-      const vw = video.videoWidth || 1280;
-      const vh = video.videoHeight || 720;
-      const canvas = document.createElement('canvas');
-      let ctx: CanvasRenderingContext2D | null = null;
-      if (vh > vw) {
-        const cropH = Math.round((vw * 9) / 16);
-        const sy = Math.max(0, Math.round((vh - cropH) / 2));
-        canvas.width = vw;
-        canvas.height = cropH;
-        ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(video, 0, sy, vw, cropH, 0, 0, vw, cropH);
-        }
-      } else {
-        canvas.width = vw;
-        canvas.height = vh;
-        ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, vw, vh);
-        }
-      }
-      if (ctx) {
+      const canvas = renderFramedVideoCanvas(phonePreviewVideoRef.current, cameraAspectMode);
+      if (canvas) {
         const snapshot = canvas.toDataURL('image/jpeg', 0.85);
         sendMessage({
           type: 'FREEZE_CAMERA_COMMAND',
@@ -779,8 +780,9 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
         onClose={() => setIsCameraModalOpen(false)}
         initialFacing={cameraFacing}
         initialMode={cameraModalMode}
-        onStreamReady={(stream, facing) => {
-          activateGrantedCameraStream(stream, facing);
+        initialAspectMode={cameraAspectMode}
+        onStreamReady={(stream, facing, aspectMode) => {
+          activateGrantedCameraStream(stream, facing, aspectMode);
         }}
         onPhotoCaptured={(file) => {
           uploadFileObject(file);
@@ -790,47 +792,20 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
       {/* PWA Install Prompt Banner for Teachers on Mobile */}
       {!isConnected && !isEmbedded && <PWAInstallBanner />}
 
-      {/* Top Header (Crisp 1px Border Notion/Stripe Style) */}
-      <header className="px-3 sm:px-4 py-2.5 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] flex items-center justify-between gap-2 sticky top-0 z-40 transition-colors">
+      {/* Top Header (Clean Functional Control Bar without Redundant Logo/Title) */}
+      <header className="px-3 sm:px-4 py-2 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] flex items-center justify-between gap-2 sticky top-0 z-40 transition-colors">
         <div className="flex items-center gap-2 min-w-0">
           {!isEmbedded && (
             <button
               type="button"
               onClick={() => (onNavigate ? onNavigate('home') : window.location.assign('/'))}
-              className="min-w-[38px] min-h-[38px] rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
+              className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
               title="Ana Sayfaya Dön"
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+              <span>Ana Sayfa</span>
             </button>
           )}
-          <div className="w-8 h-8 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-xs shrink-0">
-            <Smartphone className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-xs font-bold text-slate-900 dark:text-white truncate">
-              Tahtaya At Pro
-            </h1>
-            <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd] truncate">Mobil Kumanda</p>
-          </div>
-        </div>
-
-        {/* Camera Permission Button, Theme Switcher & Connection Status */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic(20);
-              setCameraModalMode('live-stream');
-              setIsCameraModalOpen(true);
-            }}
-            className="min-h-[38px] flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
-            title="Kamera Erişim İzni ve Kurulumu"
-          >
-            <Camera className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
-            <span className="hidden sm:inline">Kamera</span>
-          </button>
-
-          <ThemeToggle compact />
 
           {isConnected ? (
             <button
@@ -839,14 +814,33 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
               title="Bağlantıyı Kes"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="font-mono">{connectedPin}</span>
+              <span className="font-mono font-bold">{connectedPin}</span>
             </button>
           ) : (
-            <div className="min-h-[38px] flex items-center gap-1 text-[11px] text-amber-700 dark:text-[#e5933a] bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 rounded-xl font-semibold">
+            <div className="min-h-[38px] flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-[#e5933a] bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 rounded-xl font-semibold">
               <WifiOff className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden xs:inline sm:inline">Bağlı Değil</span>
+              <span>Bağlı Değil</span>
             </div>
           )}
+        </div>
+
+        {/* Camera Permission Button & Theme Switcher */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic(20);
+              setCameraModalMode('live-stream');
+              setIsCameraModalOpen(true);
+            }}
+            className="min-h-[38px] flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+            title="Kamera Erişim İzni ve Kurulumu"
+          >
+            <Camera className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+            <span>Kamera</span>
+          </button>
+
+          <ThemeToggle compact />
         </div>
       </header>
 
@@ -1095,12 +1089,15 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
                 <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3 shadow-2xs">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
                         <Video className="w-4 h-4 text-[#e54c4c] shrink-0" />
-                        <span>Canlı Doküman Kamerası (Yatay)</span>
+                        <span>Canlı Doküman Kamerası</span>
+                        <span className="px-1.5 py-0.5 rounded-md bg-[#0284c7]/10 text-[#0284c7] dark:text-[#38bdf8] font-mono text-[10px] font-bold">
+                          {getCameraAspectOption(cameraAspectMode).badge}
+                        </span>
                       </h3>
-                      <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd]">
-                        Kitabı masaya tutup tahtada 16:9 yatay yayınlayın.
+                      <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd] mt-0.5">
+                        Kitabı veya belgeyi {getCameraAspectOption(cameraAspectMode).label} kadrajıyla tahtada yayınlayın.
                       </p>
                     </div>
 
@@ -1125,18 +1122,42 @@ export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded
                     )}
                   </div>
 
+                  {/* Camera Framing / Aspect Ratio Selector */}
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                    {CAMERA_ASPECT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.mode}
+                        type="button"
+                        onClick={() => handleCameraAspectChange(opt.mode)}
+                        className={`min-h-[40px] px-1.5 py-1.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                          cameraAspectMode === opt.mode
+                            ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-2xs font-bold'
+                            : 'bg-slate-50 dark:bg-[#071322] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                        title={`${opt.label} - ${opt.desc}`}
+                      >
+                        <span className="text-[11px] font-bold leading-tight">{opt.shortLabel}</span>
+                        <span className={`text-[9px] leading-tight mt-0.5 ${cameraAspectMode === opt.mode ? 'text-sky-100' : 'opacity-75'}`}>
+                          {opt.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
                   {isCameraActive && (
-                    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-[#e54c4c]/50">
-                      <video
-                        ref={phonePreviewVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-[#e54c4c] text-white text-[10px] font-bold animate-pulse flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                        <span>Tahtada Canlı</span>
+                    <div className="w-full rounded-xl bg-black border border-[#e54c4c]/50 p-1 flex items-center justify-center overflow-hidden">
+                      <div className={`relative w-full ${getCameraPreviewBoxClass(cameraAspectMode)} bg-black rounded-lg overflow-hidden`}>
+                        <video
+                          ref={phonePreviewVideoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className={`w-full h-full ${cameraAspectMode === 'original' ? 'object-contain' : 'object-cover'}`}
+                        />
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-[#e54c4c] text-white text-[10px] font-bold animate-pulse flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                          <span>Canlı · {getCameraAspectOption(cameraAspectMode).badge}</span>
+                        </div>
                       </div>
                     </div>
                   )}

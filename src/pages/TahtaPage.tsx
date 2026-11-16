@@ -58,6 +58,12 @@ import { CameraPermissionModal } from '../components/CameraPermissionModal';
 import { ThemeToggle } from '../context/ThemeContext';
 import { sounds } from '../utils/audio';
 import { downloadMediaItemToComputer } from '../utils/fileDownloader';
+import {
+  CAMERA_ASPECT_OPTIONS,
+  getCameraAspectOption,
+  getCameraVideoClassName,
+  renderFramedVideoCanvas,
+} from '../utils/cameraFraming';
 import { 
   BoardBackgroundMode, 
   DocumentFilterMode, 
@@ -67,7 +73,8 @@ import {
   MediaFileType,
   SyncedStroke,
   NormalizedPoint,
-  ToolMode
+  ToolMode,
+  CameraAspectMode
 } from '../types/protocol';
 
 const MAX_BOARD_FILE_BYTES = 200 * 1024 * 1024; // 200 MB
@@ -156,7 +163,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
 
   // Live Camera stream
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [isCameraLandscape, setIsCameraLandscape] = useState<boolean>(true);
+  const [cameraAspectMode, setCameraAspectMode] = useState<CameraAspectMode>('16:9');
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const activeCallRef = useRef<MediaConnection | null>(null);
@@ -385,29 +392,8 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
     }
 
     if (cameraStreamRef.current && videoRef.current) {
-      const video = videoRef.current;
-      const vw = video.videoWidth || 1280;
-      const vh = video.videoHeight || 720;
-      const canvas = document.createElement('canvas');
-      let ctx: CanvasRenderingContext2D | null = null;
-      if (isCameraLandscape && vh > vw) {
-        const cropH = Math.round((vw * 9) / 16);
-        const sy = Math.max(0, Math.round((vh - cropH) / 2));
-        canvas.width = vw;
-        canvas.height = cropH;
-        ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(video, 0, sy, vw, cropH, 0, 0, vw, cropH);
-        }
-      } else {
-        canvas.width = vw;
-        canvas.height = vh;
-        ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, vw, vh);
-        }
-      }
-      if (ctx) {
+      const canvas = renderFramedVideoCanvas(videoRef.current, cameraAspectMode);
+      if (canvas) {
         const dataUrl = canvas.toDataURL('image/png');
         await downloadMediaItemToComputer({
           id: `cam-${Date.now()}`,
@@ -425,7 +411,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
         });
       }
     }
-  }, [addToast, isCameraLandscape]);
+  }, [addToast, cameraAspectMode]);
 
   // Local file upload directly on the smartboard (up to 200 MB PDF / image / video)
   const handleLocalBoardFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -643,13 +629,12 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
           call.answer();
 
           call.on('stream', (remoteStream) => {
-            setIsCameraLandscape(true);
             setCameraStream(remoteStream);
             sounds.playReceive();
             addToast({
               type: 'info',
               title: 'Canlı Doküman Kamerası',
-              message: 'Telefon kamerasından canlı video yayını tam ekranda başlatıldı.',
+              message: 'Telefon kamerasından canlı video yayını başlatıldı.',
             });
           });
 
@@ -1038,6 +1023,10 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
         });
         break;
 
+      case 'SET_CAMERA_ASPECT':
+        setCameraAspectMode(msg.aspectMode);
+        break;
+
       case 'TIMER_COMMAND':
         handleTimerChange(msg.action, msg.seconds);
         setActiveWidget('timer');
@@ -1332,12 +1321,14 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
         onClose={() => setIsBoardCameraModalOpen(false)}
         initialFacing="environment"
         initialMode="live-stream"
-        onStreamReady={(stream) => {
+        initialAspectMode={cameraAspectMode}
+        onStreamReady={(stream, _facing, mode) => {
+          setCameraAspectMode(mode);
           setCameraStream(stream);
           sounds.playReceive();
           addToast({
             type: 'info',
-            title: 'Tahta Kamerası Başlatıldı',
+            title: `Tahta Kamerası Başlatıldı (${getCameraAspectOption(mode).shortLabel})`,
             message: 'Canlı doküman kamerası akışı tahta ekranında aktif.',
           });
         }}
@@ -1403,25 +1394,12 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
               onClick={() => onNavigate('home')}
               title="Ana Sayfaya Dön"
               aria-label="Ana Sayfaya Dön"
-              className="min-w-[40px] min-h-[40px] rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
+              className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
             >
               <Home className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+              <span className="hidden sm:inline">Ana Sayfa</span>
             </button>
           )}
-
-          <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-sm shrink-0">
-              <School className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
-            <div className="hidden md:block min-w-0">
-              <h1 className="text-xs sm:text-sm font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                Tahtaya At Pro
-              </h1>
-              <p className="hidden xl:block text-[11px] text-slate-500 dark:text-[#8ba3bd]">MEB Fatih &amp; Pardus ETAP Akıllı Tahta</p>
-            </div>
-          </div>
-
-          <div className="h-6 w-px bg-slate-200 dark:bg-[#193654] hidden md:block" />
 
           {/* Clock */}
           {currentTime && (
@@ -2020,19 +1998,20 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
           </div>
         )}
 
-        {/* 2. LIVE DOCUMENT CAMERA STREAM (Horizontal 16:9 Default) */}
+        {/* 2. LIVE DOCUMENT CAMERA STREAM (Multi-Aspect Framing) */}
         {cameraStream && (
-          <div className="absolute inset-0 flex items-center justify-center overflow-hidden z-10 bg-black">
+          <div
+            className="absolute inset-0 flex items-center justify-center overflow-hidden z-10 bg-black"
+            style={{ containerType: 'size' }}
+          >
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className={`${
-                isCameraLandscape && rotation % 180 === 0
-                  ? 'w-full aspect-video max-h-full object-cover'
-                  : 'max-w-full max-h-full object-contain'
-              } shadow-2xl ${isPanDragging ? 'transition-none' : 'transition-transform duration-200'}`}
+              className={`${getCameraVideoClassName(cameraAspectMode, rotation)} shadow-2xl ${
+                isPanDragging ? 'transition-none' : 'transition-transform duration-200'
+              }`}
               style={{
                 transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) rotate(${rotation}deg) scale(${zoomLevel}) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
                 ...getFilterStyle(),
@@ -2041,7 +2020,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
             {/* Live Indicator */}
             <div className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e54c4c] text-white text-xs font-bold shadow-lg animate-pulse">
               <span className="w-2 h-2 rounded-full bg-white" />
-              <span>CANLI DOKÜMAN KAMERASI ({isCameraLandscape ? 'YATAY 16:9' : 'ORİJİNAL'})</span>
+              <span>CANLI DOKÜMAN KAMERASI ({getCameraAspectOption(cameraAspectMode).badge})</span>
             </div>
           </div>
         )}
@@ -2226,17 +2205,23 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavi
               </button>
 
               {cameraStream && (
-                <button
-                  onClick={() => setIsCameraLandscape((prev) => !prev)}
-                  className={`min-h-[36px] px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors whitespace-nowrap ${
-                    isCameraLandscape
-                      ? 'bg-[#0284c7] text-white border-[#0284c7]'
-                      : 'bg-slate-100 dark:bg-[#10243b] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654]'
-                  }`}
-                  title="Canlı Kamera Kadraj Modu (Yatay 16:9 / Orijinal)"
-                >
-                  {isCameraLandscape ? 'Yatay 16:9' : 'Orijinal Kadraj'}
-                </button>
+                <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-[#071322] p-1 rounded-xl border border-slate-200 dark:border-[#193654] shrink-0">
+                  {CAMERA_ASPECT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.mode}
+                      type="button"
+                      onClick={() => setCameraAspectMode(opt.mode)}
+                      className={`min-h-[28px] px-2 py-0.5 rounded-lg text-[11px] font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                        cameraAspectMode === opt.mode
+                          ? 'bg-[#0284c7] text-white font-bold shadow-2xs'
+                          : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                      title={`${opt.label} (${opt.desc})`}
+                    >
+                      {opt.shortLabel}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
 

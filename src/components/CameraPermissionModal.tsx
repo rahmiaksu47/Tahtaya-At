@@ -12,15 +12,24 @@ import {
   Sparkles,
   Aperture,
   Settings2,
+  Maximize2,
 } from 'lucide-react';
+import { CameraAspectMode } from '../types/protocol';
+import {
+  CAMERA_ASPECT_OPTIONS,
+  getCameraAspectOption,
+  getCameraPreviewBoxClass,
+  renderFramedVideoCanvas,
+} from '../utils/cameraFraming';
 
 export interface CameraPermissionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onStreamReady: (stream: MediaStream, facing: 'environment' | 'user') => void;
+  onStreamReady: (stream: MediaStream, facing: 'environment' | 'user', aspectMode: CameraAspectMode) => void;
   onPhotoCaptured?: (file: File) => void;
   initialFacing?: 'environment' | 'user';
   initialMode?: 'live-stream' | 'photo-snap';
+  initialAspectMode?: CameraAspectMode;
 }
 
 type PermissionStatusState = 'prompt' | 'requesting' | 'granted' | 'denied';
@@ -32,10 +41,12 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
   onPhotoCaptured,
   initialFacing = 'environment',
   initialMode = 'live-stream',
+  initialAspectMode = '16:9',
 }) => {
   const [facing, setFacing] = useState<'environment' | 'user'>(initialFacing);
   const [resolution, setResolution] = useState<'720p' | '1080p'>('720p');
   const [mode, setMode] = useState<'live-stream' | 'photo-snap'>(initialMode);
+  const [aspectMode, setAspectMode] = useState<CameraAspectMode>(initialAspectMode);
   const [status, setStatus] = useState<PermissionStatusState>('prompt');
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
@@ -49,6 +60,7 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
     if (isOpen) {
       setFacing(initialFacing);
       setMode(initialMode);
+      setAspectMode(initialAspectMode);
       setErrorDetail(null);
       transferredStreamRef.current = false;
 
@@ -79,7 +91,7 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
       }
       setPreviewStream(null);
     }
-  }, [isOpen, initialFacing, initialMode]);
+  }, [isOpen, initialFacing, initialMode, initialAspectMode]);
 
   // Attach preview stream to video element
   useEffect(() => {
@@ -106,19 +118,22 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
 
     const widthIdeal = resolution === '1080p' ? 1920 : 1280;
     const heightIdeal = resolution === '1080p' ? 1080 : 720;
+    const targetRatio = getCameraAspectOption(aspectMode).targetRatio;
 
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Tarayıcınız kamera erişimini (WebRTC getUserMedia) desteklemiyor.');
       }
 
+      const videoConstraints: MediaTrackConstraints = {
+        facingMode: { ideal: targetFacing },
+        width: { ideal: widthIdeal },
+        height: { ideal: heightIdeal },
+        ...(targetRatio ? { aspectRatio: { ideal: targetRatio } } : {}),
+      };
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: targetFacing },
-          width: { ideal: widthIdeal },
-          height: { ideal: heightIdeal },
-          aspectRatio: { ideal: 16 / 9 },
-        },
+        video: videoConstraints,
         audio: false,
       });
 
@@ -152,31 +167,14 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
   const handleConfirmLiveStream = () => {
     if (!previewStream) return;
     transferredStreamRef.current = true;
-    onStreamReady(previewStream, facing);
+    onStreamReady(previewStream, facing, aspectMode);
     onClose();
   };
 
   const handleCapturePhotoAndSend = () => {
     if (!previewVideoRef.current || !onPhotoCaptured) return;
-    const video = previewVideoRef.current;
-    const vw = video.videoWidth || 1280;
-    const vh = video.videoHeight || 720;
-    const canvas = document.createElement('canvas');
-    if (vh > vw) {
-      const cropH = Math.round((vw * 9) / 16);
-      const sy = Math.max(0, Math.round((vh - cropH) / 2));
-      canvas.width = vw;
-      canvas.height = cropH;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.drawImage(video, 0, sy, vw, cropH, 0, 0, vw, cropH);
-    } else {
-      canvas.width = vw;
-      canvas.height = vh;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.drawImage(video, 0, 0, vw, vh);
-    }
+    const canvas = renderFramedVideoCanvas(previewVideoRef.current, aspectMode);
+    if (!canvas) return;
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -345,6 +343,30 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
 
                 <div>
                   <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd] flex items-center gap-1.5 mb-1.5">
+                    <Maximize2 className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+                    <span>Canlı Kamera Kadraj Oranı</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {CAMERA_ASPECT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.mode}
+                        type="button"
+                        onClick={() => setAspectMode(opt.mode)}
+                        className={`min-h-[48px] py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                          aspectMode === opt.mode
+                            ? 'bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border-[#0284c7] text-[#0284c7] dark:text-[#38bdf8]'
+                            : 'bg-slate-50 dark:bg-[#071322] border-slate-200 dark:border-[#193654] text-slate-600 dark:text-[#8ba3bd]'
+                        }`}
+                      >
+                        <span className="text-xs font-bold leading-tight">{opt.label}</span>
+                        <span className="text-[10px] opacity-80 leading-tight mt-0.5">{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd] flex items-center gap-1.5 mb-1.5">
                     <Settings2 className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
                     <span>Aktarım Çözünürlüğü</span>
                   </label>
@@ -399,31 +421,51 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
             </div>
           )}
 
-          {/* STATE 3: GRANTED (Live Camera Preview & One-Touch Launch) */}
+          {/* STATE 3: GRANTED (Live Camera Preview & Framing Selector) */}
           {status === 'granted' && (
             <div className="flex flex-col gap-3">
-              <div className="relative w-full aspect-video max-h-60 rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-[#193654] shadow-inner">
-                <video
-                  ref={previewVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-bold border border-white/15">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Kamera Hazır ({facing === 'environment' ? 'Arka' : 'Ön'})</span>
-                </div>
+              <div className="w-full rounded-2xl bg-slate-950 border border-slate-200 dark:border-[#193654] shadow-inner overflow-hidden flex items-center justify-center p-1">
+                <div className={`relative w-full ${getCameraPreviewBoxClass(aspectMode)} overflow-hidden rounded-xl bg-black`}>
+                  <video
+                    ref={previewVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`w-full h-full ${aspectMode === 'original' ? 'object-contain' : 'object-cover'}`}
+                  />
+                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-bold border border-white/15">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{facing === 'environment' ? 'Arka' : 'Ön'} · {getCameraAspectOption(aspectMode).badge}</span>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={handleToggleFacingInPreview}
-                  className="absolute top-2.5 right-2.5 min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5 border border-white/15 transition-colors cursor-pointer"
-                  title="Ön / Arka Kamera Değiştir"
-                >
-                  <SwitchCamera className="w-3.5 h-3.5 text-[#38bdf8]" />
-                  <span>Yön Değiştir</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleFacingInPreview}
+                    className="absolute top-2 right-2 min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5 border border-white/15 transition-colors cursor-pointer"
+                    title="Ön / Arka Kamera Değiştir"
+                  >
+                    <SwitchCamera className="w-3.5 h-3.5 text-[#38bdf8]" />
+                    <span>Yön Değiştir</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Aspect Ratio Switcher */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                {CAMERA_ASPECT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.mode}
+                    type="button"
+                    onClick={() => setAspectMode(opt.mode)}
+                    className={`min-h-[38px] px-1.5 py-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                      aspectMode === opt.mode
+                        ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-2xs'
+                        : 'bg-slate-50 dark:bg-[#071322] border-slate-200 dark:border-[#193654] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {opt.shortLabel}
+                  </button>
+                ))}
               </div>
 
               <div className="flex items-center justify-between text-xs text-slate-600 dark:text-[#8ba3bd] px-1">
@@ -431,7 +473,9 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Kamera erişimi doğrulandı</span>
                 </span>
-                <span className="font-mono text-[11px]">{resolution.toUpperCase()} YATAY P2P</span>
+                <span className="font-mono text-[11px]">
+                  {resolution.toUpperCase()} · {getCameraAspectOption(aspectMode).badge}
+                </span>
               </div>
             </div>
           )}
