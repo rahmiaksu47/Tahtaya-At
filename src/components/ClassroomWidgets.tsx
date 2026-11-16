@@ -236,10 +236,10 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
 
       {/* 2. FLOATING TIMER WIDGET */}
       {activeWidget === 'timer' && (
-        <div className="fixed top-16 left-6 z-40 bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] rounded-2xl p-5 shadow-2xl backdrop-blur-md w-80 animate-in slide-in-from-left duration-200">
+        <div className="fixed top-16 inset-x-3 sm:left-6 sm:right-auto z-50 bg-white/98 dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl sm:w-80 max-h-[82dvh] overflow-y-auto animate-in slide-in-from-top-3 sm:slide-in-from-left duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#193654] mb-4">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-[#0284c7]/15 text-[#0284c7] dark:text-[#38bdf8]">
+              <div className="p-2 rounded-xl bg-[#0284c7]/15 text-[#0284c7] dark:text-[#38bdf8]">
                 <Timer className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -248,14 +248,15 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
             </div>
             <button
               onClick={() => setActiveWidget('none')}
-              className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition-colors"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#10243b] transition-colors cursor-pointer"
+              aria-label="Kapat"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="flex flex-col items-center my-2">
-            <span className={`text-5xl font-mono font-black tracking-wider transition-colors ${
+            <span className={`text-5xl font-mono font-black tracking-wider tabular-nums transition-colors ${
               timerState.timeLeft <= 10 && timerState.timeLeft > 0 
                 ? 'text-rose-500 animate-pulse' 
                 : timerState.isRunning 
@@ -275,12 +276,12 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-1.5 my-3 text-xs">
+          <div className="grid grid-cols-4 gap-2 my-3 text-xs">
             {[30, 60, 120, 300].map((sec) => (
               <button
                 key={sec}
                 onClick={() => onTimerChange('set', sec)}
-                className="py-1.5 rounded-lg bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-[#193654] transition-colors"
+                className="min-h-[42px] py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 font-bold border border-slate-200 dark:border-[#193654] transition-colors active:scale-95 cursor-pointer"
               >
                 {sec < 60 ? `${sec}sn` : `${sec / 60}dk`}
               </button>
@@ -290,18 +291,18 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
           <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-200 dark:border-[#193654]">
             <button
               onClick={() => onTimerChange(timerState.isRunning ? 'pause' : 'start')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+              className={`flex-1 min-h-[44px] py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer ${
                 timerState.isRunning
                   ? 'bg-amber-600 hover:bg-amber-500 text-white'
                   : 'bg-emerald-600 hover:bg-emerald-500 text-white'
               }`}
             >
-              {timerState.isRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              {timerState.isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               <span>{timerState.isRunning ? 'Duraklat' : 'Başlat'}</span>
             </button>
             <button
               onClick={() => onTimerChange('reset')}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#193654] transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#193654] transition-colors active:scale-95 cursor-pointer"
               title="Sıfırla"
             >
               <RotateCcw className="w-4 h-4" />
@@ -312,7 +313,7 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
 
       {/* 3. FLOATING DICE ROLLER WIDGET */}
       {activeWidget === 'dice' && (
-        <div className="fixed top-16 left-6 z-40 bg-white/95 dark:bg-[#0b1a2d]/95 border border-slate-200 dark:border-[#193654] rounded-2xl p-5 shadow-2xl backdrop-blur-md w-80 animate-in slide-in-from-left duration-200">
+        <div className="fixed top-16 inset-x-3 sm:left-6 sm:right-auto z-50 bg-white/98 dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl sm:w-80 max-h-[82dvh] overflow-y-auto animate-in slide-in-from-top-3 sm:slide-in-from-left duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#193654] mb-4">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
@@ -324,7 +325,8 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
             </div>
             <button
               onClick={() => setActiveWidget('none')}
-              className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition-colors"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#10243b] transition-colors cursor-pointer"
+              aria-label="Kapat"
             >
               <X className="w-4 h-4" />
             </button>
@@ -354,14 +356,14 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
             <button
               onClick={() => onRollDice(1)}
               disabled={diceState.rolling}
-              className="py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-slate-950 shadow-xs transition-all active:scale-95 disabled:opacity-50"
+              className="min-h-[44px] py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-slate-950 shadow-xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               1 Zar At
             </button>
             <button
               onClick={() => onRollDice(2)}
               disabled={diceState.rolling}
-              className="py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] font-bold text-xs text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
+              className="min-h-[44px] py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] font-bold text-xs text-white shadow-xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               2 Zar At
             </button>
@@ -371,10 +373,10 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
 
       {/* 4. RANDOM STUDENT PICKER (1-30 NUMARA SEÇİCİ & İSİM LİSTESİ) */}
       {activeWidget === 'picker' && (
-        <div className="fixed top-16 left-6 z-40 bg-white/98 dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] rounded-2xl p-5 shadow-2xl backdrop-blur-md w-92 animate-in slide-in-from-left duration-200">
+        <div className="fixed top-16 inset-x-3 sm:left-6 sm:right-auto z-50 bg-white/98 dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl sm:w-96 max-h-[82dvh] overflow-y-auto animate-in slide-in-from-top-3 sm:slide-in-from-left duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#193654] mb-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                 <Users className="w-4 h-4" />
               </div>
               <div>
@@ -389,7 +391,8 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
             
             <button
               onClick={() => setActiveWidget('none')}
-              className="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition-colors"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#10243b] transition-colors cursor-pointer"
+              aria-label="Kapat"
             >
               <X className="w-4 h-4" />
             </button>
@@ -401,7 +404,7 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
                 setPickerMode('number');
                 setIsEditingRoster(false);
               }}
-              className={`py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+              className={`min-h-[40px] py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 pickerMode === 'number'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -412,7 +415,7 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
             </button>
             <button
               onClick={() => setPickerMode('roster')}
-              className={`py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+              className={`min-h-[40px] py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 pickerMode === 'roster'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -439,14 +442,14 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-1 text-[11px] bg-slate-100 dark:bg-[#071322] p-2 rounded-xl border border-slate-200 dark:border-[#193654]">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] bg-slate-100 dark:bg-[#071322] p-2 rounded-xl border border-slate-200 dark:border-[#193654]">
                 <span className="text-slate-600 dark:text-slate-400 font-semibold pl-1">Sınıf Mevcudu:</span>
                 <div className="flex items-center gap-1">
                   {[20, 25, 30, 35, 40].map((size) => (
                     <button
                       key={size}
                       onClick={() => setMaxNum(size)}
-                      className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                      className={`min-w-[36px] min-h-[36px] px-2.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                         maxNum === size
                           ? 'bg-emerald-600 text-white'
                           : 'bg-white dark:bg-[#10243b] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#193654]'
@@ -459,7 +462,7 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
               </div>
 
               <div className="flex items-center justify-between text-xs px-1 text-slate-700 dark:text-slate-300">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label className="flex items-center gap-2 min-h-[36px] cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={avoidRepeats}
@@ -475,9 +478,9 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
                       setActiveNumberWinner(null);
                       setCyclingNumber(null);
                     }}
-                    className="text-[10px] text-rose-500 hover:underline flex items-center gap-1"
+                    className="min-h-[36px] px-2 text-xs text-rose-500 hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="w-3.5 h-3.5" />
                     <span>Sıfırla</span>
                   </button>
                 )}
@@ -504,7 +507,7 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
               <button
                 onClick={() => startNumberLottery()}
                 disabled={isPickerSpinning}
-                className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full min-h-[46px] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{isPickerSpinning ? 'Kura Çekiliyor...' : `1 - ${maxNum} Numara Kurası Çek`}</span>
@@ -515,12 +518,12 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
           {pickerMode === 'roster' && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {studentList.length} Öğrenci Kayıtlı
                 </span>
                 <button
                   onClick={() => setIsEditingRoster((prev) => !prev)}
-                  className="text-[11px] px-2 py-1 rounded bg-slate-100 dark:bg-[#10243b] text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-[#193654]"
+                  className="min-h-[38px] text-xs px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-[#193654] cursor-pointer"
                 >
                   {isEditingRoster ? 'Kura Ekranı' : 'Listeyi Düzenle'}
                 </button>
@@ -539,7 +542,7 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
                   <button
                     onClick={startStudentLottery}
                     disabled={isPickerSpinning || studentList.length === 0}
-                    className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="w-full min-h-[46px] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4" />
                     <span>{isPickerSpinning ? 'Seçiliyor...' : 'İsim Kurası Çek'}</span>
@@ -547,32 +550,32 @@ export const ClassroomWidgets: React.FC<ClassroomWidgetsProps> = ({
                 </>
               ) : (
                 <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
-                  <div className="flex gap-1.5 mb-1">
+                  <div className="flex gap-2 mb-1">
                     <input
                       type="text"
                       value={newStudentInput}
                       onChange={(e) => setNewStudentInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
                       placeholder="Öğrenci Adı Soyadı..."
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-xs text-slate-900 dark:text-white"
+                      className="flex-1 min-h-[42px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-base sm:text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                     />
                     <button
                       onClick={handleAddStudent}
-                      className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white"
+                      className="min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {studentList.map((st, i) => (
-                      <div key={i} className="flex items-center justify-between px-2.5 py-1 rounded bg-slate-100 dark:bg-[#10243b] text-xs text-slate-800 dark:text-slate-200">
-                        <span>{st}</span>
+                      <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] text-xs text-slate-800 dark:text-slate-200">
+                        <span className="truncate pr-2">{st}</span>
                         <button
                           onClick={() => handleRemoveStudent(i)}
-                          className="text-slate-400 hover:text-rose-500"
+                          className="min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-rose-500 rounded-lg cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     ))}

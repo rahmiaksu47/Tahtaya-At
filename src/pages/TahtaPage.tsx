@@ -43,7 +43,10 @@ import {
   ChevronUp,
   ChevronDown,
   Hand,
-  RotateCcw
+  RotateCcw,
+  Menu,
+  Home,
+  Smartphone
 } from 'lucide-react';
 import { WhiteboardCanvas } from '../components/WhiteboardCanvas';
 import { PDFViewer } from '../components/PDFViewer';
@@ -71,9 +74,10 @@ const MAX_BOARD_FILE_BYTES = 200 * 1024 * 1024; // 200 MB
 
 interface TahtaPageProps {
   isEmbedded?: boolean;
+  onNavigate?: (route: 'home' | 'tahta' | 'kumanda' | 'simulasyon') => void;
 }
 
-export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
+export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false, onNavigate }) => {
   const boardRootRef = useRef<HTMLDivElement | null>(null);
   // Room code: 6-digit random number
   const [roomPin, setRoomPin] = useState<string>('');
@@ -102,6 +106,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
   const [activeMediaIndex, setActiveMediaIndex] = useState<number>(-1);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState<boolean>(false);
   const [isBoardCameraModalOpen, setIsBoardCameraModalOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const mediaItemsRef = useRef<ReceivedMediaItem[]>([]);
   const activeMediaIndexRef = useRef<number>(-1);
   const boardFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -1211,7 +1216,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
     <div
       ref={boardRootRef}
       className={`relative ${
-        isEmbedded ? 'w-full h-full' : 'w-screen h-screen'
+        isEmbedded ? 'w-full h-full' : 'w-full h-[100dvh]'
       } overflow-hidden bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col select-none font-sans transition-colors duration-200`}
     >
       {/* Hidden Local File Input for 200MB PDF / Image / Video opening directly on Board */}
@@ -1258,30 +1263,30 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
 
       {/* Large Classroom-Readable Teacher Note Announcement */}
       {activeTeacherNote && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[62] w-[min(92%,820px)] pointer-events-auto animate-in slide-in-from-top-4 fade-in duration-200">
-          <div className="rounded-3xl bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-2 border-[#0284c7] shadow-[0_24px_60px_rgba(2,132,199,0.28)] overflow-hidden">
-            <div className="px-6 py-3.5 bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border-b border-[#0284c7]/20 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#0284c7] text-white flex items-center justify-center shadow-sm shrink-0">
-                  <MessageSquare className="w-5 h-5" />
+        <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[62] w-[min(94%,820px)] pointer-events-auto animate-in slide-in-from-top-4 fade-in duration-200">
+          <div className="rounded-2xl sm:rounded-3xl bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-2 border-[#0284c7] shadow-[0_24px_60px_rgba(2,132,199,0.28)] overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border-b border-[#0284c7]/20 flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0284c7] text-white flex items-center justify-center shadow-sm shrink-0">
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <span className="text-sm font-black uppercase tracking-wider text-[#0284c7] dark:text-[#38bdf8] block">
+                <div className="min-w-0">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0284c7] dark:text-[#38bdf8] block truncate">
                     Öğretmen Notu
                   </span>
-                  <span className="text-xs font-medium text-slate-500 dark:text-[#8ba3bd]">
+                  <span className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-[#8ba3bd] block truncate">
                     Sınıf Duyurusu · {activeTeacherNote.timestamp}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() =>
                     setActiveTeacherNote((prev) => (prev ? { ...prev, pinned: !prev.pinned } : null))
                   }
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-colors cursor-pointer ${
+                  className={`min-h-[38px] px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-colors cursor-pointer ${
                     activeTeacherNote.pinned
                       ? 'bg-[#0284c7] text-white border-[#0284c7]'
                       : 'bg-white dark:bg-[#10243b] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#0284c7]'
@@ -1295,7 +1300,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                 <button
                   type="button"
                   onClick={() => setActiveTeacherNote(null)}
-                  className="p-2 rounded-xl bg-white dark:bg-[#10243b] hover:bg-rose-50 dark:hover:bg-rose-500/20 text-slate-500 hover:text-rose-600 dark:text-slate-300 border border-slate-200 dark:border-[#193654] transition-colors cursor-pointer"
+                  className="min-w-[38px] min-h-[38px] p-2 rounded-xl bg-white dark:bg-[#10243b] hover:bg-rose-50 dark:hover:bg-rose-500/20 text-slate-500 hover:text-rose-600 dark:text-slate-300 border border-slate-200 dark:border-[#193654] transition-colors flex items-center justify-center cursor-pointer"
                   aria-label="Notu Kapat"
                   title="Kapat"
                 >
@@ -1304,14 +1309,14 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               </div>
             </div>
 
-            <div className="px-7 py-6 sm:px-9 sm:py-8 text-center">
-              <p className="text-2xl sm:text-4xl lg:text-[42px] font-black tracking-tight leading-snug text-slate-900 dark:text-white break-words">
+            <div className="px-4 py-5 sm:px-9 sm:py-8 text-center">
+              <p className="text-xl sm:text-4xl lg:text-[42px] font-black tracking-tight leading-snug text-slate-900 dark:text-white break-words">
                 {activeTeacherNote.text}
               </p>
             </div>
 
             {!activeTeacherNote.pinned && (
-              <div className="px-6 pb-3 flex items-center justify-center">
+              <div className="px-4 sm:px-6 pb-3 flex items-center justify-center text-center">
                 <span className="text-[11px] font-medium text-slate-400 dark:text-[#6f89a8]">
                   10 saniye sonra otomatik kapanır · Ekranda tutmak için Sabitle&apos;ye tıklayın
                 </span>
@@ -1389,54 +1394,71 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
         setActiveWidget={setActiveWidget}
       />
 
-      {/* Top Header / Notion & Stripe Crisp Corporate Navigation Bar */}
-      <header className="relative z-30 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] transition-colors">
-        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <div className="flex items-center gap-2 sm:gap-2.5">
+      {/* Top Header / Single Row on Mobile & Desktop */}
+      <header className="relative z-30 flex items-center justify-between gap-2 px-2.5 sm:px-5 py-2 sm:py-2.5 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] transition-colors shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {!isEmbedded && onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate('home')}
+              title="Ana Sayfaya Dön"
+              aria-label="Ana Sayfaya Dön"
+              className="min-w-[40px] min-h-[40px] rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
+            >
+              <Home className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+            </button>
+          )}
+
+          <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-sm shrink-0">
               <School className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div className="min-w-0">
+            <div className="hidden md:block min-w-0">
               <h1 className="text-xs sm:text-sm font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2 truncate">
                 Tahtaya At Pro
               </h1>
-              <p className="hidden sm:block text-[11px] text-slate-500 dark:text-[#8ba3bd]">MEB Fatih &amp; Pardus ETAP Akıllı Tahta</p>
+              <p className="hidden xl:block text-[11px] text-slate-500 dark:text-[#8ba3bd]">MEB Fatih &amp; Pardus ETAP Akıllı Tahta</p>
             </div>
           </div>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-[#193654] hidden sm:block" />
+          <div className="h-6 w-px bg-slate-200 dark:bg-[#193654] hidden md:block" />
 
           {/* Clock */}
           {currentTime && (
-            <div className="hidden xl:flex items-center gap-1.5 text-xs text-slate-600 dark:text-[#8ba3bd] bg-slate-100 dark:bg-[#071322] px-3 py-1 rounded-xl border border-slate-200 dark:border-[#193654]">
+            <div className="hidden 2xl:flex items-center gap-1.5 text-xs text-slate-600 dark:text-[#8ba3bd] bg-slate-100 dark:bg-[#071322] px-3 py-1 rounded-xl border border-slate-200 dark:border-[#193654]">
               <Clock className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
               <span className="font-mono font-semibold">{currentTime}</span>
             </div>
           )}
 
           {/* Room PIN Display */}
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] px-2.5 sm:px-3.5 py-1 rounded-xl">
-            <span className="hidden sm:inline text-[11px] uppercase font-semibold text-slate-500 dark:text-[#8ba3bd]">Oda Kodu:</span>
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            title="Oda kodunu ve bağlantıyı kopyala"
+            className="min-h-[40px] flex items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] px-2.5 sm:px-3.5 py-1 rounded-xl shrink-0 cursor-pointer"
+          >
+            <span className="hidden sm:inline text-[11px] uppercase font-semibold text-slate-500 dark:text-[#8ba3bd]">Oda:</span>
             <span className="text-sm sm:text-base font-mono font-black tracking-widest text-emerald-600 dark:text-[#10b981]">
               {roomPin || '------'}
             </span>
-          </div>
+          </button>
         </div>
 
-        {/* Center: Classroom Quick Tools Bar */}
-        <div className="order-3 lg:order-2 w-full lg:w-auto overflow-x-auto flex items-center gap-1 bg-slate-100 dark:bg-[#10243b]/90 p-1 rounded-xl border border-slate-200 dark:border-[#193654]">
+        {/* Center: Classroom Quick Tools Bar (lg+ Desktop/Smartboard) */}
+        <div className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-[#10243b]/90 p-1 rounded-xl border border-slate-200 dark:border-[#193654]">
           <button
             onClick={() => boardFileInputRef.current?.click()}
-            className="px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#071322] transition-colors cursor-pointer"
+            className="min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#071322] transition-colors cursor-pointer"
             title="Tahtadan 200 MB'a kadar PDF, Görsel veya Video Aç"
           >
             <FileUp className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
-            <span className="hidden md:inline">Dosya Aç (200 MB)</span>
+            <span>Dosya Aç</span>
           </button>
 
           <button
             onClick={() => setIsFilesModalOpen(true)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               isFilesModalOpen
                 ? 'bg-[#0284c7] text-white shadow-xs'
                 : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#071322]'
@@ -1459,7 +1481,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                 setIsBoardCameraModalOpen(true);
               }
             }}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               cameraStream
                 ? 'bg-[#e54c4c] text-white shadow-xs'
                 : 'text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#071322]'
@@ -1467,13 +1489,13 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             title="Kamera Erişim İzni & Canlı Doküman Kamerası"
           >
             <Camera className={`w-3.5 h-3.5 ${cameraStream ? 'text-white' : 'text-emerald-600 dark:text-[#10b981]'}`} />
-            <span className="hidden lg:inline">{cameraStream ? 'Kamerayı Kapat' : 'Kamera'}</span>
+            <span className="hidden xl:inline">{cameraStream ? 'Kamerayı Kapat' : 'Kamera'}</span>
           </button>
 
           {(currentMedia || cameraStream) && (
             <button
               onClick={handleDownloadCurrentMedia}
-              className="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-colors cursor-pointer animate-in zoom-in-95 duration-150"
+              className="min-h-[36px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-colors cursor-pointer animate-in zoom-in-95 duration-150"
               title="Tahtada Açık Olan Dosyayı Tahtaya İndir"
             >
               <Download className="w-3.5 h-3.5" />
@@ -1485,7 +1507,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
 
           <button
             onClick={() => setActiveWidget(activeWidget === 'timer' ? 'none' : 'timer')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+            className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               activeWidget === 'timer'
                 ? 'bg-[#0284c7] text-white shadow-xs'
                 : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
@@ -1493,12 +1515,12 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             title="Soru Kronometresi"
           >
             <Timer className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
-            <span className="hidden lg:inline">Kronometre</span>
+            <span className="hidden xl:inline">Kronometre</span>
           </button>
 
           <button
             onClick={() => setActiveWidget(activeWidget === 'dice' ? 'none' : 'dice')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+            className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               activeWidget === 'dice'
                 ? 'bg-[#f59e0b] text-slate-950 font-bold shadow-xs'
                 : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
@@ -1506,12 +1528,12 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             title="Akıllı Zar"
           >
             <Dices className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span className="hidden lg:inline">Zar</span>
+            <span className="hidden xl:inline">Zar</span>
           </button>
 
           <button
             onClick={() => setActiveWidget(activeWidget === 'picker' ? 'none' : 'picker')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+            className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               activeWidget === 'picker'
                 ? 'bg-[#10b981] text-white shadow-xs'
                 : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
@@ -1519,7 +1541,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             title="Şanslı Öğrenci Seçici (1-30 Kura)"
           >
             <Users className="w-3.5 h-3.5 text-[#10b981]" />
-            <span className="hidden lg:inline">1-30 Kura</span>
+            <span className="hidden xl:inline">1-30 Kura</span>
           </button>
 
           <button
@@ -1527,18 +1549,18 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               setIsBlackout((b) => !b);
               sounds.playCurtain();
             }}
-            className="px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-[#071322] transition-colors flex items-center gap-1.5"
+            className="min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-[#071322] transition-colors flex items-center gap-1.5"
             title="Tahtayı Karart (Öğretmene Odaklan)"
           >
             <EyeOff className="w-3.5 h-3.5 text-[#ef4444]" />
-            <span className="hidden lg:inline">Karart</span>
+            <span className="hidden xl:inline">Karart</span>
           </button>
         </div>
 
         {/* Right Actions */}
-        <div className="order-2 lg:order-3 flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {connectionStatus === 'connected' ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-[#10b981] text-xs font-semibold">
+            <div className="flex items-center gap-1.5 px-2.5 min-h-[40px] rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-[#10b981] text-xs font-semibold">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -1547,17 +1569,28 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               <span className="hidden xl:inline">{connectedDevice || 'Öğretmen Bağlandı'}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-[#f59e0b] text-xs font-semibold">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 min-h-[40px] rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-[#f59e0b] text-xs font-semibold">
               <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
               <WifiOff className="w-3.5 h-3.5" />
               <span className="hidden xl:inline">Kumanda Bekleniyor</span>
             </div>
           )}
 
-          {/* Theme Switcher (Aydınlık Sınıf / Gece Modu) */}
+          {/* Mobile Quick File Open Button (< lg) */}
+          <button
+            type="button"
+            onClick={() => boardFileInputRef.current?.click()}
+            title="Dosya Aç"
+            className="lg:hidden min-h-[42px] px-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+          >
+            <FileUp className="w-4 h-4" />
+            <span className="hidden sm:inline">Dosya Aç</span>
+          </button>
+
+          {/* Theme Switcher */}
           <ThemeToggle compact />
 
-          {/* Sound Mute */}
+          {/* Sound Mute (Desktop) */}
           <button
             onClick={() => {
               const next = !isMuted;
@@ -1565,43 +1598,265 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               sounds.setMuted(next);
             }}
             title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-[#193654]"
+            className="hidden sm:flex min-w-[40px] min-h-[40px] items-center justify-center rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-[#193654]"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-[#ef4444]" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
-          {/* Quick link copy */}
+          {/* Quick link copy (Desktop) */}
           <button
             onClick={handleCopyLink}
             title="Kumanda Linkini Kopyala"
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors border border-slate-200 dark:border-[#193654]"
+            className="hidden md:flex min-h-[40px] items-center gap-1 px-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors border border-slate-200 dark:border-[#193654]"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-[#10b981]" /> : <Copy className="w-3.5 h-3.5" />}
             <span className="hidden 2xl:inline">{copiedLink ? 'Kopyalandı' : 'Linki Al'}</span>
           </button>
 
-          {/* Open remote shortcut */}
+          {/* Open remote shortcut (Desktop) */}
           <a
             href={getKumandaUrl()}
             target="_blank"
             rel="noreferrer"
             title="Kumandayı Yeni Sekmede Aç"
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-xs font-semibold text-white transition-colors shadow-xs"
+            className="hidden lg:flex min-h-[40px] items-center gap-1 px-3 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-xs font-semibold text-white transition-colors shadow-xs"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Kumanda</span>
+            <span>Kumanda</span>
           </a>
 
-          {/* Fullscreen */}
+          {/* Fullscreen (Desktop) */}
           <button
             onClick={toggleFullscreen}
             title="Tam Ekran (F)"
-            className="p-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-[#193654]"
+            className="hidden sm:flex min-w-[40px] min-h-[40px] items-center justify-center rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-[#193654]"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
+
+          {/* Mobile Drawer Menu Trigger (< lg) */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(true)}
+            title="Sınıf Araçları ve Menü"
+            aria-label="Sınıf Araçları ve Menü"
+            className="lg:hidden min-w-[42px] min-h-[42px] px-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[#193654] flex items-center justify-center gap-1.5 text-xs font-bold transition-colors cursor-pointer"
+          >
+            <Menu className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+            <span className="hidden sm:inline">Araçlar</span>
+          </button>
         </div>
       </header>
+
+      {/* Mobile Native Bottom-Sheet Tools & Navigation Drawer (< lg) */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-50 lg:hidden flex items-end justify-center bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl bg-white dark:bg-[#0b1a2d] border-t border-slate-200 dark:border-[#193654] shadow-2xl p-4 sm:p-5 pb-safe max-h-[86dvh] overflow-y-auto animate-in slide-in-from-bottom-4 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto mb-3" />
+            <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-slate-200 dark:border-[#193654]">
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  Akıllı Tahta Araçları &amp; Menü
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">
+                  Oda Kodu: <strong className="font-mono text-emerald-600 dark:text-[#10b981]">{roomPin || '------'}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="min-w-[40px] min-h-[40px] rounded-xl bg-slate-100 dark:bg-[#10243b] flex items-center justify-center text-slate-600 dark:text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-3.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  boardFileInputRef.current?.click();
+                }}
+                className="min-h-[46px] px-3 py-2.5 rounded-xl bg-[#0284c7] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs"
+              >
+                <FileUp className="w-4 h-4" />
+                <span>Dosya Aç (200 MB)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsFilesModalOpen(true);
+                }}
+                className="min-h-[46px] px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] border border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2"
+              >
+                <FolderOpen className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+                <span>Dosyalar ({mediaItems.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (cameraStream) {
+                    cameraStream.getTracks().forEach((t) => t.stop());
+                    setCameraStream(null);
+                  } else {
+                    setIsBoardCameraModalOpen(true);
+                  }
+                }}
+                className={`min-h-[46px] px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border ${
+                  cameraStream
+                    ? 'bg-[#e54c4c] text-white border-[#e54c4c]'
+                    : 'bg-slate-100 dark:bg-[#10243b] border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200'
+                }`}
+              >
+                <Camera className="w-4 h-4 text-emerald-500" />
+                <span>{cameraStream ? 'Kamerayı Kapat' : 'Canlı Kamera'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isMuted;
+                  setIsMuted(next);
+                  sounds.setMuted(next);
+                }}
+                className="min-h-[46px] px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] border border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2"
+              >
+                {isMuted ? <VolumeX className="w-4 h-4 text-[#ef4444]" /> : <Volume2 className="w-4 h-4 text-[#0284c7]" />}
+                <span>{isMuted ? 'Sesi Aç' : 'Sesi Kapat'}</span>
+              </button>
+            </div>
+
+            {(currentMedia || cameraStream) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleDownloadCurrentMedia();
+                }}
+                className="w-full min-h-[46px] mb-3.5 px-3 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs"
+              >
+                <Download className="w-4 h-4" />
+                <span>Açık Dosyayı Cihaza İndir</span>
+              </button>
+            )}
+
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#8ba3bd] mb-2">
+              Sınıf Etkileşim Araçları
+            </p>
+            <div className="grid grid-cols-2 gap-2 mb-3.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setActiveWidget(activeWidget === 'timer' ? 'none' : 'timer');
+                }}
+                className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border ${
+                  activeWidget === 'timer'
+                    ? 'bg-[#0284c7] text-white border-[#0284c7]'
+                    : 'bg-slate-50 dark:bg-[#071322] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <Timer className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+                <span>Kronometre</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setActiveWidget(activeWidget === 'dice' ? 'none' : 'dice');
+                }}
+                className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border ${
+                  activeWidget === 'dice'
+                    ? 'bg-[#f59e0b] text-slate-950 border-[#f59e0b]'
+                    : 'bg-slate-50 dark:bg-[#071322] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <Dices className="w-4 h-4 text-[#f59e0b]" />
+                <span>Akıllı Zar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setActiveWidget(activeWidget === 'picker' ? 'none' : 'picker');
+                }}
+                className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border ${
+                  activeWidget === 'picker'
+                    ? 'bg-[#10b981] text-white border-[#10b981]'
+                    : 'bg-slate-50 dark:bg-[#071322] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <Users className="w-4 h-4 text-[#10b981]" />
+                <span>1-30 Kura</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsBlackout((b) => !b);
+                  sounds.playCurtain();
+                }}
+                className="min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2"
+              >
+                <EyeOff className="w-4 h-4 text-[#ef4444]" />
+                <span>Tahtayı Karart</span>
+              </button>
+            </div>
+
+            <div className="pt-3 border-t border-slate-200 dark:border-[#193654] grid grid-cols-2 gap-2">
+              {onNavigate ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onNavigate('kumanda');
+                  }}
+                  className="min-h-[44px] px-3 py-2 rounded-xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border border-[#0284c7]/30 text-[#0284c7] dark:text-[#38bdf8] text-xs font-bold flex items-center justify-center gap-1.5"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>Kumandaya Geç</span>
+                </button>
+              ) : (
+                <a
+                  href={getKumandaUrl()}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-h-[44px] px-3 py-2 rounded-xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border border-[#0284c7]/30 text-[#0284c7] dark:text-[#38bdf8] text-xs font-bold flex items-center justify-center gap-1.5"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Kumandayı Aç</span>
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleCopyLink();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="min-h-[44px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5"
+              >
+                <Copy className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+                <span>Bağlantıyı Kopyala</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Interactive Stage */}
       <main
@@ -1629,7 +1884,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
           }`}
         />
 
-        {/* 1. WAITING / IDLE STAGE: Notion & Stripe High-Contrast Dashboard Card */}
+        {/* 1. WAITING / IDLE STAGE */}
         {!currentMedia && !cameraStream && (
           <div className={`relative ${bgMode === 'transparent' ? 'z-[25]' : 'z-10'} max-w-4xl w-full p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0b1a2d]/98 border border-slate-200 dark:border-[#193654] shadow-xl flex flex-col lg:flex-row items-center gap-5 lg:gap-8 my-auto animate-in zoom-in-95 duration-200`}>
             {/* Left: QR Code Card */}
@@ -1655,10 +1910,10 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                 {roomPin || '------'}
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
                 <button
                   onClick={handleCopyLink}
-                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] text-xs text-[#0284c7] dark:text-[#38bdf8] font-semibold transition-colors flex items-center gap-1 border border-slate-200 dark:border-[#193654]"
+                  className="min-h-[42px] flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] text-xs text-[#0284c7] dark:text-[#38bdf8] font-bold transition-colors flex items-center justify-center gap-1.5 border border-slate-200 dark:border-[#193654]"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>Kodu Kopyala</span>
@@ -1667,7 +1922,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                   href={getKumandaUrl()}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3 py-1.5 rounded-lg bg-[#0284c7] hover:bg-[#0369a1] text-xs text-white font-semibold transition-colors flex items-center gap-1 shadow-xs"
+                  className="min-h-[42px] flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-xs text-white font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Kumandayı Aç</span>
@@ -1676,7 +1931,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             </div>
 
             {/* Right: Step-by-Step Institutional Instructions & Quick Launch */}
-            <div className="flex-1 flex flex-col justify-between h-full">
+            <div className="flex-1 flex flex-col justify-between h-full w-full">
               <div>
                 <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0284c7] dark:text-[#38bdf8] mb-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-[#10b981]" />
@@ -1725,39 +1980,39 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
 
               {/* Quick Launch Cards */}
               <div className="pt-4 border-t border-slate-200 dark:border-[#193654] flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-[#8ba3bd]">
                     Hızlı İşlemler &amp; Tahta Zemin Modları:
                   </span>
                   <button
                     onClick={() => boardFileInputRef.current?.click()}
-                    className="text-xs font-bold text-[#0284c7] dark:text-[#38bdf8] hover:underline flex items-center gap-1"
+                    className="min-h-[38px] text-xs font-bold text-[#0284c7] dark:text-[#38bdf8] hover:underline flex items-center gap-1"
                   >
                     <FileUp className="w-3.5 h-3.5" />
-                    <span>Bilgisayardan PDF / Dosya Seç (200 MB)</span>
+                    <span>PDF / Dosya Seç (200 MB)</span>
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setBgMode('white')}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors"
+                    className="min-h-[44px] p-2.5 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors"
                   >
-                    <PenTool className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
-                    <span>Beyaz Tahta</span>
+                    <PenTool className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
+                    <span className="truncate">Beyaz Tahta</span>
                   </button>
                   <button
                     onClick={() => setBgMode('grid')}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors"
+                    className="min-h-[44px] p-2.5 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors"
                   >
-                    <LayoutGrid className="w-3.5 h-3.5 text-emerald-600 dark:text-[#10b981]" />
-                    <span>Kareli Defter</span>
+                    <LayoutGrid className="w-3.5 h-3.5 text-emerald-600 dark:text-[#10b981] shrink-0" />
+                    <span className="truncate">Kareli Defter</span>
                   </button>
                   <button
                     onClick={() => setBgMode('green-blackboard')}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors"
+                    className="min-h-[44px] p-2.5 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors"
                   >
-                    <School className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Kara Tahta</span>
+                    <School className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span className="truncate">Kara Tahta</span>
                   </button>
                 </div>
               </div>
@@ -1917,27 +2172,27 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
           className="absolute inset-0 z-20"
         />
 
-        {/* 5. BOTTOM FLOATING CONTROL DOCK (Notion/Stripe Crisp Glass Dock) */}
+        {/* 5. BOTTOM FLOATING CONTROL DOCK (320px-Safe Horizontal Scroll on Mobile, Crisp Dock on Desktop) */}
         {(currentMedia || cameraStream) && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center gap-2 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border border-slate-200 dark:border-[#193654] px-3.5 py-2 rounded-2xl shadow-xl text-slate-800 dark:text-white">
+          <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-30 max-w-[calc(100vw-1rem)] overflow-x-auto no-scrollbar flex items-center gap-1.5 sm:gap-2 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border border-slate-200 dark:border-[#193654] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl shadow-xl text-slate-800 dark:text-white">
             {/* Gallery Pagination */}
             {mediaItems.length > 1 && !cameraStream && (
-              <div className="flex items-center gap-1 pr-2 border-r border-slate-200 dark:border-[#193654]">
+              <div className="flex items-center gap-1 pr-2 border-r border-slate-200 dark:border-[#193654] shrink-0">
                 <button
                   onClick={() => setActiveMediaIndex((prev) => Math.max(0, prev - 1))}
                   disabled={activeMediaIndex <= 0}
-                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] disabled:opacity-30 transition-colors"
+                  className="min-w-[36px] min-h-[36px] p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] disabled:opacity-30 flex items-center justify-center transition-colors"
                   title="Önceki Dosya"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-xs font-mono font-bold px-1">
-                  Dosya {activeMediaIndex + 1}/{mediaItems.length}
+                <span className="text-xs font-mono font-bold px-1 whitespace-nowrap">
+                  {activeMediaIndex + 1}/{mediaItems.length}
                 </span>
                 <button
                   onClick={() => setActiveMediaIndex((prev) => Math.min(mediaItems.length - 1, prev + 1))}
                   disabled={activeMediaIndex >= mediaItems.length - 1}
-                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] disabled:opacity-30 transition-colors"
+                  className="min-w-[36px] min-h-[36px] p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] disabled:opacity-30 flex items-center justify-center transition-colors"
                   title="Sonraki Dosya"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -1946,13 +2201,13 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             )}
 
             {/* Rotate & Flip Tools */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => {
                   setRotation((prev) => (prev + 90) % 360);
                   sounds.playRotate();
                 }}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors"
+                className="min-h-[36px] flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors whitespace-nowrap"
                 title="90° Saat Yönünde Döndür (Kısayol: R)"
               >
                 <RotateCw className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
@@ -1964,7 +2219,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                   setFlipH((f) => !f);
                   sounds.playRotate();
                 }}
-                className="p-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300 transition-colors"
+                className="min-w-[36px] min-h-[36px] p-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300 flex items-center justify-center transition-colors"
                 title="Yatay Aynala"
               >
                 <FlipHorizontal className="w-4 h-4" />
@@ -1973,7 +2228,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               {cameraStream && (
                 <button
                   onClick={() => setIsCameraLandscape((prev) => !prev)}
-                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors ${
+                  className={`min-h-[36px] px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-colors whitespace-nowrap ${
                     isCameraLandscape
                       ? 'bg-[#0284c7] text-white border-[#0284c7]'
                       : 'bg-slate-100 dark:bg-[#10243b] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654]'
@@ -1986,24 +2241,24 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             </div>
 
             {/* Document Filters */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-2 py-1 rounded-xl text-xs border border-slate-200 dark:border-[#193654]">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 dark:text-[#8ba3bd] mr-1" />
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-2 py-1 rounded-xl text-xs border border-slate-200 dark:border-[#193654] shrink-0">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 dark:text-[#8ba3bd] mr-0.5 shrink-0" />
               <button
                 onClick={() => setDocFilter('normal')}
-                className={`px-1.5 py-0.5 rounded-md ${docFilter === 'normal' ? 'bg-[#0284c7] text-white font-bold' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'}`}
+                className={`min-h-[28px] px-2 py-0.5 rounded-md whitespace-nowrap ${docFilter === 'normal' ? 'bg-[#0284c7] text-white font-bold' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'}`}
               >
                 Orijinal
               </button>
               <button
                 onClick={() => setDocFilter('doc-scan')}
-                className={`px-1.5 py-0.5 rounded-md ${docFilter === 'doc-scan' ? 'bg-[#0284c7] text-white font-bold' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'}`}
+                className={`min-h-[28px] px-2 py-0.5 rounded-md whitespace-nowrap ${docFilter === 'doc-scan' ? 'bg-[#0284c7] text-white font-bold' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'}`}
                 title="Kitap / Test Kağıdı Modu"
               >
-                Kitap Modu
+                Kitap
               </button>
               <button
                 onClick={() => setDocFilter('grayscale')}
-                className={`px-1.5 py-0.5 rounded-md ${docFilter === 'grayscale' ? 'bg-[#0284c7] text-white font-bold' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'}`}
+                className={`min-h-[28px] px-2 py-0.5 rounded-md whitespace-nowrap ${docFilter === 'grayscale' ? 'bg-[#0284c7] text-white font-bold' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'}`}
                 title="Fotokopi"
               >
                 Fotokopi
@@ -2011,10 +2266,10 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             </div>
 
             {/* Zoom & Pan Controls */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-2 py-1 rounded-xl border border-slate-200 dark:border-[#193654]">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-2 py-1 rounded-xl border border-slate-200 dark:border-[#193654] shrink-0">
               <button
                 onClick={() => setZoomLevel((z) => Math.max(0.5, Number((z - 0.2).toFixed(1))))}
-                className="p-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="min-w-[32px] min-h-[32px] p-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center"
                 title="Uzaklaştır"
               >
                 <ZoomOut className="w-3.5 h-3.5" />
@@ -2024,7 +2279,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               </span>
               <button
                 onClick={() => setZoomLevel((z) => Math.min(3, Number((z + 0.2).toFixed(1))))}
-                className="p-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="min-w-[32px] min-h-[32px] p-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center"
                 title="Yakınlaştır"
               >
                 <ZoomIn className="w-3.5 h-3.5" />
@@ -2034,7 +2289,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                 <div className="flex items-center gap-0.5 pl-1.5 ml-1 border-l border-slate-300 dark:border-[#193654]">
                   <button
                     onClick={() => setIsPanMode((p) => !p)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                    className={`min-h-[32px] flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap ${
                       isPanMode
                         ? 'bg-[#0284c7] text-white shadow-xs'
                         : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]'
@@ -2046,28 +2301,28 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                   </button>
                   <button
                     onClick={() => nudgePan(0, 90)}
-                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    className="min-w-[32px] min-h-[32px] p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b] flex items-center justify-center"
                     title="Yukarı Kaydır (Üst Kısma Bak)"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => nudgePan(0, -90)}
-                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    className="min-w-[32px] min-h-[32px] p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b] flex items-center justify-center"
                     title="Aşağı Kaydır (Alt Kısma Bak)"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => nudgePan(90, 0)}
-                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    className="min-w-[32px] min-h-[32px] p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b] flex items-center justify-center"
                     title="Sola Kaydır"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => nudgePan(-90, 0)}
-                    className="p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                    className="min-w-[32px] min-h-[32px] p-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#10243b] flex items-center justify-center"
                     title="Sağa Kaydır"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -2075,7 +2330,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                   {(panOffset.x !== 0 || panOffset.y !== 0) && (
                     <button
                       onClick={resetPan}
-                      className="p-1 rounded-lg text-[#0284c7] dark:text-[#38bdf8] hover:bg-slate-200 dark:hover:bg-[#10243b]"
+                      className="min-w-[32px] min-h-[32px] p-1 rounded-lg text-[#0284c7] dark:text-[#38bdf8] hover:bg-slate-200 dark:hover:bg-[#10243b] flex items-center justify-center"
                       title="Dosyayı Ortala"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -2088,7 +2343,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             {/* Clear Screen */}
             <button
               onClick={handleClearAll}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#e54c4c] hover:bg-red-600 text-xs font-bold text-white transition-colors shadow-xs"
+              className="min-h-[36px] flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#e54c4c] hover:bg-red-600 text-xs font-bold text-white transition-colors shadow-xs shrink-0 whitespace-nowrap"
               title="Dersi Bitir / Tahtayı Sıfırla (Kısayol: Esc)"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -2097,36 +2352,36 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
           </div>
         )}
 
-        {/* 6. TAHTA DOSYA YÖNETİCİSİ & İNDİRME MERKEZİ MODALI (Empty State + Data Table) */}
+        {/* 6. TAHTA DOSYA YÖNETİCİSİ & İNDİRME MERKEZİ MODALI (Mobile Cards + Desktop Data Table) */}
         {isFilesModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150">
-            <div className="w-full max-w-3xl rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xl overflow-hidden flex flex-col max-h-[82vh]">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150">
+            <div className="w-full max-w-3xl rounded-t-3xl sm:rounded-2xl bg-white dark:bg-[#0b1a2d] border-t sm:border border-slate-200 dark:border-[#193654] shadow-2xl overflow-hidden flex flex-col max-h-[88dvh] sm:max-h-[82vh] pb-safe">
               {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-slate-200 dark:border-[#193654] flex items-center justify-between bg-slate-50/70 dark:bg-[#071322]/70">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border border-[#0284c7]/25 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8]">
+              <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 dark:border-[#193654] flex items-center justify-between gap-2 bg-slate-50/70 dark:bg-[#071322]/70">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border border-[#0284c7]/25 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] shrink-0">
                     <FolderOpen className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
-                      Tahta Dosya Yöneticisi &amp; İndirme Merkezi
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate">
+                      Dosya Yöneticisi &amp; İndirme Merkezi
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-[#8ba3bd]">
-                      Tahtada açılan tüm PDF, fotoğraf ve videoları görüntüleyin veya doğrudan tahtaya indirin
+                    <p className="text-[11px] sm:text-xs text-slate-500 dark:text-[#8ba3bd] truncate">
+                      Açılan tüm PDF, fotoğraf ve videoları görüntüleyin veya indirin
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => boardFileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <FileUp className="w-3.5 h-3.5" />
-                    <span>Yeni Dosya Aç (200 MB)</span>
+                    <span className="hidden sm:inline">Yeni Dosya</span>
                   </button>
                   <button
                     onClick={() => setIsFilesModalOpen(false)}
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                    className="min-w-[40px] min-h-[40px] p-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
                     title="Kapat"
                   >
                     <X className="w-4 h-4" />
@@ -2135,10 +2390,10 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
               </div>
 
               {/* Modal Body */}
-              <div className="p-6 overflow-y-auto flex-1">
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                 {mediaItems.length === 0 ? (
                   /* Professional Empty State */
-                  <div className="py-12 px-6 text-center rounded-2xl bg-slate-50 dark:bg-[#071322]/70 border border-dashed border-slate-300 dark:border-[#193654] flex flex-col items-center">
+                  <div className="py-10 sm:py-12 px-4 sm:px-6 text-center rounded-2xl bg-slate-50 dark:bg-[#071322]/70 border border-dashed border-slate-300 dark:border-[#193654] flex flex-col items-center">
                     <div className="w-14 h-14 rounded-2xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 border border-[#0284c7]/25 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] mb-4">
                       <FolderOpen className="w-7 h-7" />
                     </div>
@@ -2146,22 +2401,22 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                       Henüz Tahtada Açılmış Bir Materyal Yok
                     </h4>
                     <p className="text-xs text-slate-600 dark:text-[#8ba3bd] max-w-md leading-relaxed mb-6">
-                      Öğretmen telefonunuzdan QR kod ile soru fotoğrafı veya 200 MB PDF kitap gönderebilir ya da doğrudan bu akıllı tahta bilgisayarından dosya seçebilirsiniz.
+                      Öğretmen telefonunuzdan QR kod ile soru fotoğrafı veya 200 MB PDF kitap gönderebilir ya da doğrudan bu cihazdan dosya seçebilirsiniz.
                     </p>
-                    <div className="flex flex-wrap items-center justify-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 w-full sm:w-auto">
                       <button
                         onClick={() => {
                           setIsFilesModalOpen(false);
                           boardFileInputRef.current?.click();
                         }}
-                        className="px-4 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+                        className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
                       >
                         <FileUp className="w-4 h-4" />
-                        <span>Bilgisayardan 200 MB PDF / Görsel Seç</span>
+                        <span>200 MB PDF / Görsel Seç</span>
                       </button>
                       <button
                         onClick={handleCopyLink}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[#193654] text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+                        className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#142e4b] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[#193654] text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                       >
                         <Copy className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
                         <span>Mobil Kumanda Linkini Kopyala</span>
@@ -2169,99 +2424,174 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                     </div>
                   </div>
                 ) : (
-                  /* Aesthetic Data Table of Opened Files */
-                  <div className="rounded-xl border border-slate-200 dark:border-[#193654] overflow-hidden">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50 dark:bg-[#071322] border-b border-slate-200 dark:border-[#193654] text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd]">
-                          <th className="py-3 px-4">Dosya Adı</th>
-                          <th className="py-3 px-3">Tür</th>
-                          <th className="py-3 px-3">Sayfa / Durum</th>
-                          <th className="py-3 px-4 text-right">İşlemler</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 dark:divide-[#193654] text-xs">
-                        {mediaItems.map((item, idx) => {
-                          const isCurrent = idx === activeMediaIndex;
-                          return (
-                            <tr
-                              key={item.id}
-                              className={`transition-colors ${
-                                isCurrent
-                                  ? 'bg-[#0284c7]/5 dark:bg-[#0284c7]/15'
-                                  : 'hover:bg-slate-50 dark:hover:bg-[#10243b]/40'
-                              }`}
-                            >
-                              <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                                <div className="flex items-center gap-2.5">
-                                  {item.type === 'pdf' ? (
-                                    <FileText className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
-                                  ) : item.type === 'video' ? (
-                                    <Film className="w-4 h-4 text-amber-500 shrink-0" />
-                                  ) : (
-                                    <ImageIcon className="w-4 h-4 text-emerald-500 shrink-0" />
-                                  )}
-                                  <span className="truncate max-w-[240px]" title={item.originalFileName || item.name}>
+                  <>
+                    {/* Mobile Card Stack (< md) */}
+                    <div className="md:hidden space-y-2.5">
+                      {mediaItems.map((item, idx) => {
+                        const isCurrent = idx === activeMediaIndex;
+                        return (
+                          <div
+                            key={item.id}
+                            className={`p-3.5 rounded-2xl border transition-colors ${
+                              isCurrent
+                                ? 'bg-[#0284c7]/5 dark:bg-[#0284c7]/15 border-[#0284c7]/40'
+                                : 'bg-slate-50 dark:bg-[#071322]/80 border-slate-200 dark:border-[#193654]'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2.5 mb-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                {item.type === 'pdf' ? (
+                                  <FileText className="w-5 h-5 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
+                                ) : item.type === 'video' ? (
+                                  <Film className="w-5 h-5 text-amber-500 shrink-0" />
+                                ) : (
+                                  <ImageIcon className="w-5 h-5 text-emerald-500 shrink-0" />
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                     {item.originalFileName || item.name}
-                                  </span>
-                                  {isCurrent && (
-                                    <span className="px-2 py-0.5 rounded-md bg-[#0284c7] text-white text-[10px] font-bold">
-                                      Açık
-                                    </span>
-                                  )}
+                                  </p>
+                                  <p className="text-[11px] text-slate-500 dark:text-[#8ba3bd] font-mono">
+                                    {item.type === 'pdf'
+                                      ? `PDF • Sayfa ${item.pageNumber || 1}/${item.totalPages || 1}`
+                                      : item.type === 'video'
+                                        ? 'VİDEO • HD'
+                                        : 'GÖRSEL • Yüksek Çözünürlük'}
+                                  </p>
                                 </div>
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] font-mono text-[11px] font-semibold uppercase text-slate-700 dark:text-slate-300">
-                                  {item.type === 'pdf' ? 'PDF' : item.type === 'video' ? 'VİDEO' : 'GÖRSEL'}
+                              </div>
+                              {isCurrent && (
+                                <span className="px-2 py-0.5 rounded-md bg-[#0284c7] text-white text-[10px] font-bold shrink-0">
+                                  Açık
                                 </span>
-                              </td>
-                              <td className="py-3 px-3 text-slate-600 dark:text-[#8ba3bd] font-mono">
-                                {item.type === 'pdf'
-                                  ? `Sayfa ${item.pageNumber || 1} / ${item.totalPages || 1}`
-                                  : 'Yüksek Çözünürlük'}
-                              </td>
-                              <td className="py-3 px-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <button
-                                    onClick={() => {
-                                      setActiveMediaIndex(idx);
-                                      setIsFilesModalOpen(false);
-                                    }}
-                                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 font-semibold transition-colors cursor-pointer"
-                                  >
-                                    Tahtada Göster
-                                  </button>
-                                  <button
-                                    onClick={async () => {
-                                      await downloadMediaItemToComputer(item);
-                                      sounds.playClick();
-                                      addToast({
-                                        type: item.type === 'pdf' ? 'pdf' : 'image',
-                                        title: 'Dosya Tahtaya İndirildi',
-                                        message: `"${item.originalFileName || item.name}" akıllı tahtaya indirildi.`,
-                                      });
-                                    }}
-                                    className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                                  >
-                                    <Download className="w-3.5 h-3.5" />
-                                    <span>Tahtaya İndir</span>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => {
+                                  setActiveMediaIndex(idx);
+                                  setIsFilesModalOpen(false);
+                                }}
+                                className="min-h-[42px] px-3 py-2 rounded-xl bg-white dark:bg-[#10243b] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center transition-colors"
+                              >
+                                Tahtada Göster
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  await downloadMediaItemToComputer(item);
+                                  sounds.playClick();
+                                  addToast({
+                                    type: item.type === 'pdf' ? 'pdf' : 'image',
+                                    title: 'Dosya Cihaza İndirildi',
+                                    message: `"${item.originalFileName || item.name}" indirildi.`,
+                                  });
+                                }}
+                                className="min-h-[42px] px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>İndir</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Desktop Data Table (md+) */}
+                    <div className="hidden md:block rounded-xl border border-slate-200 dark:border-[#193654] overflow-hidden">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 dark:bg-[#071322] border-b border-slate-200 dark:border-[#193654] text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#8ba3bd]">
+                            <th className="py-3 px-4">Dosya Adı</th>
+                            <th className="py-3 px-3">Tür</th>
+                            <th className="py-3 px-3">Sayfa / Durum</th>
+                            <th className="py-3 px-4 text-right">İşlemler</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-[#193654] text-xs">
+                          {mediaItems.map((item, idx) => {
+                            const isCurrent = idx === activeMediaIndex;
+                            return (
+                              <tr
+                                key={item.id}
+                                className={`transition-colors ${
+                                  isCurrent
+                                    ? 'bg-[#0284c7]/5 dark:bg-[#0284c7]/15'
+                                    : 'hover:bg-slate-50 dark:hover:bg-[#10243b]/40'
+                                }`}
+                              >
+                                <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                                  <div className="flex items-center gap-2.5">
+                                    {item.type === 'pdf' ? (
+                                      <FileText className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
+                                    ) : item.type === 'video' ? (
+                                      <Film className="w-4 h-4 text-amber-500 shrink-0" />
+                                    ) : (
+                                      <ImageIcon className="w-4 h-4 text-emerald-500 shrink-0" />
+                                    )}
+                                    <span className="truncate max-w-[240px]" title={item.originalFileName || item.name}>
+                                      {item.originalFileName || item.name}
+                                    </span>
+                                    {isCurrent && (
+                                      <span className="px-2 py-0.5 rounded-md bg-[#0284c7] text-white text-[10px] font-bold">
+                                        Açık
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] font-mono text-[11px] font-semibold uppercase text-slate-700 dark:text-slate-300">
+                                    {item.type === 'pdf' ? 'PDF' : item.type === 'video' ? 'VİDEO' : 'GÖRSEL'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-slate-600 dark:text-[#8ba3bd] font-mono">
+                                  {item.type === 'pdf'
+                                    ? `Sayfa ${item.pageNumber || 1} / ${item.totalPages || 1}`
+                                    : 'Yüksek Çözünürlük'}
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setActiveMediaIndex(idx);
+                                        setIsFilesModalOpen(false);
+                                      }}
+                                      className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 font-semibold transition-colors cursor-pointer"
+                                    >
+                                      Tahtada Göster
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        await downloadMediaItemToComputer(item);
+                                        sounds.playClick();
+                                        addToast({
+                                          type: item.type === 'pdf' ? 'pdf' : 'image',
+                                          title: 'Dosya Tahtaya İndirildi',
+                                          message: `"${item.originalFileName || item.name}" akıllı tahtaya indirildi.`,
+                                        });
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                      <span>Tahtaya İndir</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
               </div>
 
               {/* Modal Footer */}
-              <div className="px-6 py-3.5 border-t border-slate-200 dark:border-[#193654] bg-slate-50/70 dark:bg-[#071322]/70 flex items-center justify-between">
+              <div className="px-4 sm:px-6 py-3.5 border-t border-slate-200 dark:border-[#193654] bg-slate-50/70 dark:bg-[#071322]/70 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-slate-500 dark:text-[#8ba3bd]">
-                  Toplam <strong className="text-slate-900 dark:text-white">{mediaItems.length}</strong> materyal oturum belleğinde hazır
+                  Toplam <strong className="text-slate-900 dark:text-white">{mediaItems.length}</strong> materyal hazır
                 </span>
                 <div className="flex items-center gap-2">
                   {mediaItems.length > 1 && (
@@ -2277,15 +2607,15 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
                           message: `${mediaItems.length} adet dosya akıllı tahta bilgisayarına kaydedildi.`,
                         });
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Tümünü Tahtaya İndir ({mediaItems.length})</span>
+                      <span>Tümünü İndir ({mediaItems.length})</span>
                     </button>
                   )}
                   <button
                     onClick={() => setIsFilesModalOpen(false)}
-                    className="px-4 py-1.5 rounded-xl bg-slate-200 dark:bg-[#10243b] hover:bg-slate-300 dark:hover:bg-[#15304f] text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer"
+                    className="min-h-[40px] px-4 py-1.5 rounded-xl bg-slate-200 dark:bg-[#10243b] hover:bg-slate-300 dark:hover:bg-[#15304f] text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer"
                   >
                     Kapat
                   </button>
@@ -2296,8 +2626,8 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
         )}
       </main>
 
-      {/* Footer Info strip */}
-      <footer className="relative z-30 px-6 py-2 bg-white/95 dark:bg-[#0b1a2d]/95 border-t border-slate-200 dark:border-[#193654] text-xs text-slate-500 dark:text-[#8ba3bd] flex items-center justify-between transition-colors">
+      {/* Footer Info strip (Desktop/Tablet only so mobile maximizes canvas height) */}
+      <footer className="hidden md:flex relative z-30 px-6 py-2 bg-white/95 dark:bg-[#0b1a2d]/95 border-t border-slate-200 dark:border-[#193654] text-xs text-slate-500 dark:text-[#8ba3bd] items-center justify-between transition-colors shrink-0">
         <div className="flex items-center gap-3">
           <span className="font-semibold text-slate-800 dark:text-slate-300">Tahtaya At Pro</span>
           <span>•</span>
@@ -2305,7 +2635,7 @@ export const TahtaPage: React.FC<TahtaPageProps> = ({ isEmbedded = false }) => {
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>P2P Şifreli Güvenli Bağlantı</span>
           </span>
-          <span className="hidden md:inline">• Kısayollar: [F] Tam Ekran • [R] 90° Döndür • [Esc] Temizle</span>
+          <span className="hidden lg:inline">• Kısayollar: [F] Tam Ekran • [R] 90° Döndür • [Esc] Temizle</span>
         </div>
         <div className="flex items-center gap-4">
           <span>Oda: <strong className="text-emerald-600 dark:text-[#10b981] font-mono">{roomPin || 'Hazırlanıyor'}</strong></span>

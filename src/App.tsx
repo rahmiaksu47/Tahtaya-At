@@ -64,19 +64,21 @@ export default function App() {
     setCurrentRoute(route);
     const newPath = route === 'home' ? '/' : `/${route}${queryParams}`;
     window.history.pushState({}, '', newPath);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <ThemeProvider>
       {currentRoute === 'tahta' ? (
-        <TahtaPage />
+        <TahtaPage onNavigate={(route) => navigateTo(route)} />
       ) : currentRoute === 'kumanda' ? (
-        <KumandaPage />
+        <KumandaPage onNavigate={(route) => navigateTo(route)} />
       ) : currentRoute === 'simulasyon' ? (
-        <SimulasyonPage onBackToHome={() => navigateTo('home')} />
+        <SimulasyonPage onBackToHome={() => navigateTo('home')} onNavigate={(route) => navigateTo(route)} />
       ) : (
         <HomePage onNavigate={(route) => navigateTo(route)} />
       )}
     </ThemeProvider>
   );
 }
+

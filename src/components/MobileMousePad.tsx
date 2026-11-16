@@ -456,7 +456,7 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
               triggerHaptic?.(15);
               setTrackingMode('trackpad');
             }}
-            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+            className={`min-h-[40px] py-2 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
               trackingMode === 'trackpad'
                 ? 'bg-white dark:bg-[#10243b] text-[#0284c7] dark:text-[#38bdf8] shadow-2xs'
                 : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-800 dark:hover:text-white'
@@ -470,7 +470,7 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
               triggerHaptic?.(15);
               setTrackingMode('direct');
             }}
-            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+            className={`min-h-[40px] py-2 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
               trackingMode === 'direct'
                 ? 'bg-white dark:bg-[#10243b] text-[#0284c7] dark:text-[#38bdf8] shadow-2xs'
                 : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-800 dark:hover:text-white'
@@ -481,8 +481,8 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
         </div>
 
         {/* Speed / DPI Segmented Control + Coordinate Readout */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-[#193654]">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-[#193654]">
+          <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-slate-500 dark:text-[#8ba3bd]">
               Konum:
             </span>
@@ -503,7 +503,7 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
                       triggerHaptic?.(15);
                       setSensitivity(level);
                     }}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
+                    className={`min-h-[34px] px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
                       active
                         ? 'bg-white dark:bg-[#10243b] text-[#0284c7] dark:text-[#38bdf8] shadow-2xs'
                         : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-800 dark:hover:text-white'
@@ -530,7 +530,7 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          className={`relative flex-1 h-72 rounded-2xl border-2 transition-colors overflow-hidden touch-none select-none flex flex-col items-center justify-center cursor-pointer ${
+          className={`relative flex-1 h-[38dvh] min-h-[240px] max-h-[320px] rounded-2xl border-2 transition-colors overflow-hidden touch-none select-none flex flex-col items-center justify-center cursor-pointer ${
             isTouching
               ? 'bg-sky-50/70 dark:bg-[#0d223a] border-[#0284c7] dark:border-[#38bdf8]'
               : 'bg-white dark:bg-[#0b1a2d] border-slate-200 dark:border-[#193654]'
@@ -571,9 +571,9 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
             </div>
           )}
 
-          <div className="pointer-events-none flex flex-col items-center text-center px-4">
+          <div className="pointer-events-none flex flex-col items-center text-center px-3">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-2.5 transition-transform duration-150 ${
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-2 transition-transform duration-150 ${
                 isTouching
                   ? 'bg-[#0284c7] text-white scale-105 shadow-md'
                   : 'bg-slate-100 dark:bg-[#10243b] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[#193654]'
@@ -588,7 +588,7 @@ export const MobileMousePad: React.FC<MobileMousePadProps> = ({
                   ? 'Ekran Takip Alanı'
                   : 'Trackpad Alanı'}
             </span>
-            <span className="text-[11px] text-slate-500 dark:text-[#8ba3bd] mt-1 max-w-[230px]">
+            <span className="text-[11px] text-slate-500 dark:text-[#8ba3bd] mt-1 max-w-[220px]">
               {trackingMode === 'direct'
                 ? 'Parmağınızı değdirdiğiniz noktaya tahta imleci anında gider; dokunarak tıklayın.'
                 : 'Parmağınızı kaydırın, dokunarak tıklayın veya sağ tık için iki parmakla dokunun.'}

@@ -98,30 +98,30 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const [activeGuideStep, setActiveGuideStep] = useState<number>(0);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col font-sans selection:bg-[#0284c7] selection:text-white transition-colors duration-200 pb-16 md:pb-0">
+    <div className="min-h-[100dvh] bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col font-sans selection:bg-[#0284c7] selection:text-white transition-colors duration-200 pb-20 md:pb-0">
       {/* PWA Install Banner */}
       <PWAInstallBanner />
 
       {/* Top Navigation Bar (Apple / Linear / Stripe Precision Header) */}
-      <header className="px-4 sm:px-6 py-3.5 border-b border-slate-200 dark:border-[#193654] bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md sticky top-0 z-50 transition-colors">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <header className="px-3.5 sm:px-6 py-2.5 sm:py-3.5 border-b border-slate-200 dark:border-[#193654] bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md sticky top-0 z-50 transition-colors">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Wordmark */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-xs">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-xs shrink-0">
               <School className="w-5 h-5 text-white" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                <span className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
                   Tahtaya At Pro
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-[#10b981] border border-emerald-500/25">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-[#10b981] border border-emerald-500/25 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   ETAP v5.2
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">
-                MEB Pardus ETAP Akıllı Tahta &amp; Mobil Kumanda Sistemi
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#8ba3bd] truncate">
+                MEB Akıllı Tahta &amp; Mobil Kumanda
               </p>
             </div>
           </div>
@@ -135,29 +135,30 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </nav>
 
           {/* Theme Switcher & Actions */}
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <ThemeToggle compact />
 
             <button
               onClick={() => onNavigate('simulasyon')}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors border border-slate-200 dark:border-[#193654] cursor-pointer"
+              className="hidden sm:flex min-h-[42px] items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#142e4b] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors border border-slate-200 dark:border-[#193654] cursor-pointer"
             >
               <SplitSquareVertical className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
               <span>Simülatör</span>
             </button>
             <button
               onClick={() => onNavigate('tahta')}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-xs font-bold text-white transition-all shadow-xs active:scale-95 cursor-pointer"
+              className="min-h-[42px] flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-xs font-bold text-white transition-all shadow-xs active:scale-95 cursor-pointer"
             >
-              <Monitor className="w-4 h-4" />
-              <span>Tahtada Başlat</span>
+              <Monitor className="w-4 h-4 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Tahtada Başlat</span>
+              <span className="xs:hidden sm:hidden">Tahta</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Hero Section with Architectural Dot Grid */}
-      <section className="relative px-4 sm:px-6 pt-14 pb-16 overflow-hidden border-b border-slate-200 dark:border-[#193654] bg-architectural-dots">
+      <section className="relative px-4 sm:px-6 pt-8 sm:pt-14 pb-12 sm:pb-16 overflow-hidden border-b border-slate-200 dark:border-[#193654] bg-architectural-dots">
         <div className="max-w-5xl mx-auto text-center relative z-10">
           {/* Unboxed Institutional Metadata */}
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-[#0284c7] dark:text-[#38bdf8] mb-5 font-semibold">
@@ -407,76 +408,76 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </h2>
           </div>
 
-          {/* 4 KPI Stat Cards with Visual Progress Bars */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#8ba3bd] mb-2">
-                <span className="font-semibold">Maks. PDF Boyutu</span>
-                <FileText className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+          {/* 4 KPI Stat Cards with Visual Progress Bars (2x2 on Mobile, 4-col on Desktop) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 dark:text-[#8ba3bd] mb-1.5 sm:mb-2">
+                <span className="font-semibold truncate">Maks. PDF Boyutu</span>
+                <FileText className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
               </div>
-              <div className="text-3xl font-mono font-black text-slate-900 dark:text-white tabular-nums mb-2">
+              <div className="text-xl sm:text-3xl font-mono font-black text-slate-900 dark:text-white tabular-nums mb-2">
                 200 MB
               </div>
-              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-2">
+              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-1.5 sm:mb-2">
                 <div className="h-full w-full bg-[#0284c7] rounded-full" />
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">
-                64 KB SCTP Akış Dilimleme
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#8ba3bd] block truncate">
+                64 KB SCTP Akış
               </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#8ba3bd] mb-2">
-                <span className="font-semibold">Kalem &amp; Lazer Gecikmesi</span>
-                <Activity className="w-4 h-4 text-emerald-600 dark:text-[#10b981]" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 dark:text-[#8ba3bd] mb-1.5 sm:mb-2">
+                <span className="font-semibold truncate">Kalem Gecikmesi</span>
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-[#10b981] shrink-0" />
               </div>
-              <div className="text-3xl font-mono font-black text-emerald-600 dark:text-[#10b981] tabular-nums mb-2">
+              <div className="text-xl sm:text-3xl font-mono font-black text-emerald-600 dark:text-[#10b981] tabular-nums mb-2">
                 ~14 ms
               </div>
-              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-2">
+              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-1.5 sm:mb-2">
                 <div className="h-full w-[94%] bg-emerald-500 rounded-full" />
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">
-                60 FPS WebRTC DataChannel
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#8ba3bd] block truncate">
+                60 FPS WebRTC P2P
               </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#8ba3bd] mb-2">
-                <span className="font-semibold">PDF Render Kalitesi</span>
-                <Cpu className="w-4 h-4 text-amber-500" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 dark:text-[#8ba3bd] mb-1.5 sm:mb-2">
+                <span className="font-semibold truncate">Render Kalitesi</span>
+                <Cpu className="w-4 h-4 text-amber-500 shrink-0" />
               </div>
-              <div className="text-3xl font-mono font-black text-slate-900 dark:text-white tabular-nums mb-2">
+              <div className="text-xl sm:text-3xl font-mono font-black text-slate-900 dark:text-white tabular-nums mb-2">
                 2x Retina
               </div>
-              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-2">
+              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-1.5 sm:mb-2">
                 <div className="h-full w-[96%] bg-amber-500 rounded-full" />
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">
-                Dinamik Vektörel Netleştirme
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#8ba3bd] block truncate">
+                Vektörel Netleştirme
               </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#8ba3bd] mb-2">
-                <span className="font-semibold">ETAP &amp; Tahta Uyumu</span>
-                <Zap className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 dark:text-[#8ba3bd] mb-1.5 sm:mb-2">
+                <span className="font-semibold truncate">ETAP Uyumu</span>
+                <Zap className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
               </div>
-              <div className="text-3xl font-mono font-black text-slate-900 dark:text-white tabular-nums mb-2">
+              <div className="text-xl sm:text-3xl font-mono font-black text-slate-900 dark:text-white tabular-nums mb-2">
                 %100
               </div>
-              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-2">
+              <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#10243b] overflow-hidden mb-1.5 sm:mb-2">
                 <div className="h-full w-full bg-emerald-500 rounded-full" />
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-[#8ba3bd]">
-                Faz 1, Faz 2, Faz 3 &amp; Mobil
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#8ba3bd] block truncate">
+                Faz 1/2/3 &amp; Mobil
               </span>
             </div>
           </div>
 
           {/* Aesthetic Responsive Data Table (Desktop Table + Mobile Cards) */}
           <div className="rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-[#193654] flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-[#193654] flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   Platform ve Akıllı Tahta Donanım Uyumluluk Matrisi
@@ -631,7 +632,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </div>
           <button
             onClick={() => onNavigate('tahta')}
-            className="px-4 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold shrink-0 transition-all cursor-pointer"
+            className="w-full md:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold shrink-0 transition-all cursor-pointer"
           >
             Hemen Başlat
           </button>
@@ -640,14 +641,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
       {/* Institutional Footer */}
       <footer className="px-4 sm:px-6 py-8 bg-white dark:bg-[#071322] text-slate-500 dark:text-[#708499] text-xs">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
             <School className="w-4 h-4 text-[#0284c7]" />
             <span className="font-semibold text-slate-800 dark:text-slate-300">Tahtaya At Pro</span>
             <span aria-hidden="true">·</span>
             <span>MEB Pardus ETAP Kurumsal Sürüm</span>
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[11px]">
             <span>200 MB Retina PDF</span>
             <span aria-hidden="true">·</span>
             <span>Tahtaya İndirme Destekli</span>
@@ -658,24 +659,24 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       </footer>
 
       {/* Mobile Bottom Navigation Bar (Ergonomic Thumb Bar for Phone Users on Home Page) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-xl border-t border-slate-200 dark:border-[#193654] px-3 py-2 flex items-center justify-around shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-t border-slate-200 dark:border-[#193654] px-2 pt-1.5 pb-safe grid grid-cols-3 gap-1 items-center shadow-2xl">
         <button
           onClick={() => onNavigate('tahta')}
-          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-[#0284c7] dark:text-[#38bdf8] font-bold text-[11px]"
+          className="min-h-[48px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl bg-[#0284c7]/10 text-[#0284c7] dark:text-[#38bdf8] font-bold text-[11px] active:scale-95 transition-transform cursor-pointer"
         >
           <Monitor className="w-5 h-5" />
           <span>Akıllı Tahta</span>
         </button>
         <button
           onClick={() => onNavigate('kumanda')}
-          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-emerald-600 dark:text-[#10b981] font-bold text-[11px]"
+          className="min-h-[48px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-[#10b981] font-bold text-[11px] active:scale-95 transition-transform cursor-pointer"
         >
           <Smartphone className="w-5 h-5" />
           <span>Mobil Kumanda</span>
         </button>
         <button
           onClick={() => onNavigate('simulasyon')}
-          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-slate-600 dark:text-[#8ba3bd] font-semibold text-[11px]"
+          className="min-h-[48px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl text-slate-600 dark:text-[#8ba3bd] hover:bg-slate-100 dark:hover:bg-[#10243b] font-semibold text-[11px] active:scale-95 transition-transform cursor-pointer"
         >
           <SplitSquareVertical className="w-5 h-5" />
           <span>Simülatör</span>

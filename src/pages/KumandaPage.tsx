@@ -41,7 +41,9 @@ import {
   Download,
   Mouse,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Monitor,
+  Home
 } from 'lucide-react';
 import { TelegramToast, ToastItem } from '../components/TelegramToast';
 import { MobileDrawPad } from '../components/MobileDrawPad';
@@ -57,7 +59,12 @@ import {
   DocumentFilterMode 
 } from '../types/protocol';
 
-export const KumandaPage: React.FC = () => {
+interface KumandaPageProps {
+  onNavigate?: (route: 'home' | 'tahta' | 'kumanda' | 'simulasyon') => void;
+  isEmbedded?: boolean;
+}
+
+export const KumandaPage: React.FC<KumandaPageProps> = ({ onNavigate, isEmbedded = false }) => {
   // PIN and Connection States
   const [pinDigits, setPinDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
@@ -762,7 +769,7 @@ export const KumandaPage: React.FC = () => {
   const fullEnteredCode = pinDigits.join('');
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col font-sans select-none pb-24 transition-colors duration-200">
+    <div className="min-h-[100dvh] bg-[#f8fafc] dark:bg-[#071322] text-slate-900 dark:text-[#f1f5f9] flex flex-col font-sans select-none pb-28 transition-colors duration-200">
       {/* Telegram-style Toast Notification Host */}
       <TelegramToast toasts={toasts} onDismiss={removeToast} />
 
@@ -781,24 +788,34 @@ export const KumandaPage: React.FC = () => {
       />
 
       {/* PWA Install Prompt Banner for Teachers on Mobile */}
-      {!isConnected && <PWAInstallBanner />}
+      {!isConnected && !isEmbedded && <PWAInstallBanner />}
 
       {/* Top Header (Crisp 1px Border Notion/Stripe Style) */}
-      <header className="px-4 py-3 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] flex items-center justify-between sticky top-0 z-40 transition-colors">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-xs">
+      <header className="px-3 sm:px-4 py-2.5 bg-white/95 dark:bg-[#0b1a2d]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#193654] flex items-center justify-between gap-2 sticky top-0 z-40 transition-colors">
+        <div className="flex items-center gap-2 min-w-0">
+          {!isEmbedded && (
+            <button
+              type="button"
+              onClick={() => (onNavigate ? onNavigate('home') : window.location.assign('/'))}
+              className="min-w-[38px] min-h-[38px] rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
+              title="Ana Sayfaya Dön"
+            >
+              <Home className="w-4 h-4" />
+            </button>
+          )}
+          <div className="w-8 h-8 rounded-xl bg-[#0284c7] flex items-center justify-center text-white shadow-xs shrink-0">
             <Smartphone className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+          <div className="min-w-0">
+            <h1 className="text-xs font-bold text-slate-900 dark:text-white truncate">
               Tahtaya At Pro
             </h1>
-            <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd]">Öğretmen Mobil Kumandası</p>
+            <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd] truncate">Mobil Kumanda</p>
           </div>
         </div>
 
         {/* Camera Permission Button, Theme Switcher & Connection Status */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -806,11 +823,11 @@ export const KumandaPage: React.FC = () => {
               setCameraModalMode('live-stream');
               setIsCameraModalOpen(true);
             }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+            className="min-h-[38px] flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
             title="Kamera Erişim İzni ve Kurulumu"
           >
             <Camera className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
-            <span className="hidden sm:inline">Kamera İzni</span>
+            <span className="hidden sm:inline">Kamera</span>
           </button>
 
           <ThemeToggle compact />
@@ -818,37 +835,37 @@ export const KumandaPage: React.FC = () => {
           {isConnected ? (
             <button
               onClick={handleDisconnect}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-[#10b981] text-xs font-semibold"
+              className="min-h-[38px] flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-[#10b981] text-xs font-semibold cursor-pointer"
               title="Bağlantıyı Kes"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Oda: {connectedPin}</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="font-mono">{connectedPin}</span>
             </button>
           ) : (
-            <div className="flex items-center gap-1 text-xs text-amber-700 dark:text-[#e5933a] bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 rounded-lg font-medium">
-              <WifiOff className="w-3 h-3" />
-              <span>Bağlı Değil</span>
+            <div className="min-h-[38px] flex items-center gap-1 text-[11px] text-amber-700 dark:text-[#e5933a] bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 rounded-xl font-semibold">
+              <WifiOff className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Bağlı Değil</span>
             </div>
           )}
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-3.5">
-        {/* 1. NOT CONNECTED STATE: Ergonomic 6-box PIN Entry */}
+      <main className="flex-1 max-w-md md:max-w-xl w-full mx-auto p-3.5 sm:p-4 flex flex-col gap-3.5">
+        {/* 1. NOT CONNECTED STATE: Ergonomic 6-box PIN Entry (Zero 320px Overflow) */}
         {!isConnected && (
-          <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-6 shadow-lg flex flex-col items-center text-center my-auto">
-            <div className="w-14 h-14 rounded-2xl bg-[#0284c7]/10 border border-[#0284c7]/25 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] mb-3">
+          <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 sm:p-6 shadow-lg flex flex-col items-center text-center my-auto">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#0284c7]/10 border border-[#0284c7]/25 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] mb-3">
               <Wifi className="w-7 h-7" />
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Akıllı Tahtaya Bağlan</h2>
-            <p className="text-xs text-slate-600 dark:text-[#8ba3bd] mb-6 max-w-xs">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-1">Akıllı Tahtaya Bağlan</h2>
+            <p className="text-xs text-slate-600 dark:text-[#8ba3bd] mb-5 max-w-xs">
               Akıllı tahtanın ekranında görünen 6 haneli oda kodunu girin.
             </p>
 
-            {/* 6 Individual PIN Input Boxes with Auto-Advance */}
-            <div className="flex items-center justify-center gap-2 mb-4 w-full">
+            {/* 6 Individual PIN Input Boxes with Auto-Advance (Responsive 6-col grid for 320px+) */}
+            <div className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4 w-full max-w-[320px]">
               {pinDigits.map((digit, idx) => (
                 <input
                   key={idx}
@@ -862,7 +879,8 @@ export const KumandaPage: React.FC = () => {
                   value={digit}
                   onChange={(e) => handleDigitChange(idx, e.target.value)}
                   onKeyDown={(e) => handleDigitKeyDown(idx, e)}
-                  className={`w-11 h-14 text-center text-2xl font-mono font-black rounded-xl border-2 transition-all focus:outline-none ${
+                  aria-label={`Oda Kodu Hane ${idx + 1}`}
+                  className={`w-full h-12 sm:h-14 text-center text-xl sm:text-2xl font-mono font-black rounded-xl border-2 transition-all focus:outline-none ${
                     digit 
                       ? 'border-[#0284c7] bg-slate-50 dark:bg-[#071322] text-emerald-600 dark:text-[#10b981]' 
                       : 'border-slate-200 dark:border-[#193654] bg-slate-50 dark:bg-[#071322]/80 text-slate-900 dark:text-white focus:border-[#0284c7]'
@@ -872,13 +890,13 @@ export const KumandaPage: React.FC = () => {
             </div>
 
             {/* Paste from Clipboard & Camera Access Permission helpers */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+            <div className="grid grid-cols-2 gap-2 w-full max-w-[320px] mb-4">
               <button
                 onClick={handlePasteCode}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-medium text-slate-700 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                className="min-h-[42px] flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-xs font-semibold text-slate-700 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
               >
-                <ClipboardPaste className="w-3.5 h-3.5" />
-                <span>Panodan Yapıştır</span>
+                <ClipboardPaste className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Kodu Yapıştır</span>
               </button>
               <button
                 type="button"
@@ -887,10 +905,10 @@ export const KumandaPage: React.FC = () => {
                   setCameraModalMode('live-stream');
                   setIsCameraModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 hover:bg-[#0284c7]/20 border border-[#0284c7]/30 text-xs font-semibold text-[#0284c7] dark:text-[#38bdf8] transition-colors cursor-pointer"
+                className="min-h-[42px] flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-[#0284c7]/10 dark:bg-[#0284c7]/20 hover:bg-[#0284c7]/20 border border-[#0284c7]/30 text-xs font-semibold text-[#0284c7] dark:text-[#38bdf8] transition-colors cursor-pointer"
               >
-                <Camera className="w-3.5 h-3.5" />
-                <span>Kamera Erişim İzni</span>
+                <Camera className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Kamera İzni</span>
               </button>
             </div>
 
@@ -904,7 +922,7 @@ export const KumandaPage: React.FC = () => {
             <button
               onClick={() => connectToBoard(fullEnteredCode)}
               disabled={isConnecting || fullEnteredCode.length !== 6}
-              className="w-full py-3.5 px-6 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-sm shadow-sm disabled:opacity-40 transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-sm shadow-sm disabled:opacity-40 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               {isConnecting ? (
                 <>
@@ -919,10 +937,31 @@ export const KumandaPage: React.FC = () => {
               )}
             </button>
 
-            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-[#193654] text-slate-500 dark:text-[#8ba3bd] text-[11px] flex items-center gap-1.5">
-              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+            <div className="mt-5 pt-4 border-t border-slate-200 dark:border-[#193654] text-slate-500 dark:text-[#8ba3bd] text-[11px] flex items-center gap-1.5 text-left">
+              <HelpCircle className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
               <span>İpucu: Tahtadaki QR kodu telefon kameranızla okutursanız otomatik bağlanır.</span>
             </div>
+
+            {!isEmbedded && (
+              <div className="w-full grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-[#193654]/60">
+                <button
+                  type="button"
+                  onClick={() => (onNavigate ? onNavigate('tahta') : window.location.assign('/tahta'))}
+                  className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 border border-slate-200 dark:border-[#193654] cursor-pointer"
+                >
+                  <Monitor className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+                  <span>Akıllı Tahta Aç</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => (onNavigate ? onNavigate('home') : window.location.assign('/'))}
+                  className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 border border-slate-200 dark:border-[#193654] cursor-pointer"
+                >
+                  <Home className="w-3.5 h-3.5 text-emerald-600 dark:text-[#10b981]" />
+                  <span>Ana Sayfa</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -953,12 +992,12 @@ export const KumandaPage: React.FC = () => {
             {activeTab === 'controls' && (
               <div className="flex flex-col gap-3">
                 {/* Real-time Smartboard Live Sync Status Card */}
-                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3 flex items-center justify-between shadow-2xs">
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <div className="w-8 h-8 rounded-xl bg-[#0284c7]/10 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] shrink-0 border border-[#0284c7]/25">
+                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-xl bg-[#0284c7]/10 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] shrink-0 border border-[#0284c7]/25">
                       <FileText className="w-4 h-4" />
                     </div>
-                    <div className="truncate">
+                    <div className="min-w-0">
                       <span className="text-[10px] text-slate-500 dark:text-[#8ba3bd] block font-medium">Tahtadaki Aktif Materyal:</span>
                       <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">
                         {boardState.activeMediaName || 'Tahta Boş (Fotoğraf/PDF Gönderin)'}
@@ -978,30 +1017,30 @@ export const KumandaPage: React.FC = () => {
                             message: 'Açık olan dosya akıllı tahtaya indirildi.',
                           });
                         }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition-all"
+                        className="min-h-[38px] flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
                         title="Tahtada Açık Olan Dosyayı Tahtaya İndir"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>Tahtaya İndir</span>
+                        <span>İndir</span>
                       </button>
 
-                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-2 py-1 rounded-xl border border-slate-200 dark:border-[#193654]">
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#071322] px-1.5 py-1 rounded-xl border border-slate-200 dark:border-[#193654]">
                         <button
                           onClick={() => handleNavigateSlide('prev')}
-                          className="p-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                          className="min-w-[32px] min-h-[32px] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                           title="Önceki Sayfa"
                         >
-                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <ChevronLeft className="w-4 h-4" />
                         </button>
-                        <span className="text-[11px] font-mono font-bold text-[#0284c7] dark:text-[#38bdf8]">
+                        <span className="text-[11px] font-mono font-bold text-[#0284c7] dark:text-[#38bdf8] px-1">
                           {boardState.activeMediaIndex + 1}/{boardState.totalMedia}
                         </span>
                         <button
                           onClick={() => handleNavigateSlide('next')}
-                          className="p-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                          className="min-w-[32px] min-h-[32px] flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                           title="Sonraki Sayfa"
                         >
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -1018,7 +1057,7 @@ export const KumandaPage: React.FC = () => {
                       setCameraModalMode('photo-snap');
                       setIsCameraModalOpen(true);
                     }}
-                    className="cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-center shadow-sm active:scale-95 transition-all"
+                    className="min-h-[88px] cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-center shadow-sm active:scale-95 transition-all"
                   >
                     <Camera className="w-6 h-6 mb-1.5" />
                     <span className="text-[11px] leading-tight">Fotoğraf Çek</span>
@@ -1026,7 +1065,7 @@ export const KumandaPage: React.FC = () => {
                   </button>
 
                   {/* Gallery Pick */}
-                  <label className="cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white font-bold text-center shadow-2xs active:scale-95 transition-all">
+                  <label className="min-h-[88px] cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white font-bold text-center shadow-2xs active:scale-95 transition-all">
                     <input
                       type="file"
                       accept="image/*,video/*"
@@ -1039,7 +1078,7 @@ export const KumandaPage: React.FC = () => {
                   </label>
 
                   {/* PDF Upload (Up to 200MB) */}
-                  <label className="cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white font-bold text-center shadow-2xs active:scale-95 transition-all">
+                  <label className="min-h-[88px] cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white font-bold text-center shadow-2xs active:scale-95 transition-all">
                     <input
                       type="file"
                       accept=".pdf,application/pdf"
@@ -1048,29 +1087,29 @@ export const KumandaPage: React.FC = () => {
                     />
                     <FileText className="w-6 h-6 text-emerald-600 dark:text-[#10b981] mb-1.5" />
                     <span className="text-[11px] leading-tight">PDF Yükle</span>
-                    <span className="text-[9px] font-normal text-emerald-600 dark:text-[#10b981] mt-0.5 font-mono">200 MB'a kadar</span>
+                    <span className="text-[9px] font-normal text-emerald-600 dark:text-[#10b981] mt-0.5 font-mono">200 MB</span>
                   </label>
                 </div>
 
                 {/* 2. LIVE DOCUMENT CAMERA */}
-                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <div>
+                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3 shadow-2xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <Video className="w-4 h-4 text-[#e54c4c]" />
-                        <span>Canlı Doküman Kamerası</span>
+                        <Video className="w-4 h-4 text-[#e54c4c] shrink-0" />
+                        <span>Canlı Doküman Kamerası (Yatay)</span>
                       </h3>
                       <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd]">
-                        Kitabı masaya tutup tahtada canlı yayınlayın.
+                        Kitabı masaya tutup tahtada 16:9 yatay yayınlayın.
                       </p>
                     </div>
 
                     {isCameraActive && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={handleFreezeCameraFrame}
                           title="Kareyi Dondur ve Tahtada Sabitle"
-                          className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors"
+                          className="min-h-[38px] px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <Aperture className="w-3.5 h-3.5" />
                           <span>Dondur</span>
@@ -1078,7 +1117,7 @@ export const KumandaPage: React.FC = () => {
                         <button
                           onClick={switchCameraFacing}
                           title="Kamera Değiştir (Ön/Arka)"
-                          className="p-1.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300"
+                          className="min-w-[38px] min-h-[38px] p-2 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300 flex items-center justify-center cursor-pointer"
                         >
                           <SwitchCamera className="w-4 h-4" />
                         </button>
@@ -1104,7 +1143,7 @@ export const KumandaPage: React.FC = () => {
 
                   <button
                     onClick={toggleDocumentCamera}
-                    className={`w-full py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                    className={`w-full min-h-[46px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer ${
                       isCameraActive
                         ? 'bg-[#e54c4c] hover:bg-[#dc2626] text-white shadow-sm'
                         : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
@@ -1129,32 +1168,32 @@ export const KumandaPage: React.FC = () => {
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-[#8ba3bd]">
                     PDF Sayfa &amp; Ekran Kontrolleri:
                   </span>
-                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold">
                     <button
                       onClick={() => handleNavigateSlide('prev')}
-                      className="py-3 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                      className="min-h-[44px] py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Önceki</span>
                     </button>
                     <button
                       onClick={() => handleNavigateSlide('next')}
-                      className="py-3 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                      className="min-h-[44px] py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
                     >
                       <span>Sonraki</span>
                       <ChevronRight className="w-4 h-4" />
                     </button>
                     <button
                       onClick={handleRotate}
-                      className="py-3 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center gap-1 active:scale-95 transition-all"
+                      className="min-h-[44px] py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
                       title="90 Derece Döndür"
                     >
                       <RotateCw className="w-4 h-4" />
-                      <span>90°</span>
+                      <span>90° Döndür</span>
                     </button>
                     <button
                       onClick={handleFlip}
-                      className="py-3 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                      className="min-h-[44px] py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
                       title="Yatay Aynala"
                     >
                       <FlipHorizontal className="w-4 h-4" />
@@ -1163,19 +1202,19 @@ export const KumandaPage: React.FC = () => {
                   </div>
 
                   {/* Zoom & Pan Controls */}
-                  <div className="flex flex-col gap-2 p-2 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-xs">
-                    <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-slate-600 dark:text-[#8ba3bd] font-medium flex items-center gap-1">
                         <span>Yakınlaştırma:</span>
                         <strong className="text-[#0284c7] dark:text-[#38bdf8] font-mono">{Math.round(boardState.zoomLevel * 100)}%</strong>
                       </span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => {
                             triggerHaptic(20);
                             sendMessage({ type: 'ZOOM', delta: -0.2 });
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center gap-1 font-semibold"
+                          className="min-h-[38px] px-3 py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center gap-1 font-semibold cursor-pointer"
                           title="Uzaklaştır"
                         >
                           <ZoomOut className="w-3.5 h-3.5" />
@@ -1186,7 +1225,7 @@ export const KumandaPage: React.FC = () => {
                             triggerHaptic(20);
                             sendMessage({ type: 'ZOOM', delta: 0.2 });
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center gap-1 font-semibold"
+                          className="min-h-[38px] px-3 py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center gap-1 font-semibold cursor-pointer"
                           title="Yakınlaştır"
                         >
                           <ZoomIn className="w-3.5 h-3.5" />
@@ -1196,16 +1235,16 @@ export const KumandaPage: React.FC = () => {
                     </div>
 
                     {boardState.zoomLevel > 1 && (
-                      <div className="grid grid-cols-5 gap-1 pt-2 border-t border-slate-200 dark:border-[#193654]">
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 pt-2 border-t border-slate-200 dark:border-[#193654]">
                         <button
                           onClick={() => {
                             triggerHaptic(15);
                             sendMessage({ type: 'PAN_MEDIA', dx: 0, dy: 90 });
                           }}
-                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          className="min-h-[40px] py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1 font-semibold active:scale-95 transition-transform cursor-pointer"
                           title="Yukarı Kaydır"
                         >
-                          <ChevronUp className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+                          <ChevronUp className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
                           <span className="text-[11px]">Yukarı</span>
                         </button>
                         <button
@@ -1213,10 +1252,10 @@ export const KumandaPage: React.FC = () => {
                             triggerHaptic(15);
                             sendMessage({ type: 'PAN_MEDIA', dx: 0, dy: -90 });
                           }}
-                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          className="min-h-[40px] py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1 font-semibold active:scale-95 transition-transform cursor-pointer"
                           title="Aşağı Kaydır"
                         >
-                          <ChevronDown className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
+                          <ChevronDown className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
                           <span className="text-[11px]">Aşağı</span>
                         </button>
                         <button
@@ -1224,10 +1263,10 @@ export const KumandaPage: React.FC = () => {
                             triggerHaptic(15);
                             sendMessage({ type: 'PAN_MEDIA', dx: 90, dy: 0 });
                           }}
-                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          className="min-h-[40px] py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1 font-semibold active:scale-95 transition-transform cursor-pointer"
                           title="Sola Kaydır"
                         >
-                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <ChevronLeft className="w-4 h-4" />
                           <span className="text-[11px]">Sol</span>
                         </button>
                         <button
@@ -1235,21 +1274,21 @@ export const KumandaPage: React.FC = () => {
                             triggerHaptic(15);
                             sendMessage({ type: 'PAN_MEDIA', dx: -90, dy: 0 });
                           }}
-                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          className="min-h-[40px] py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1 font-semibold active:scale-95 transition-transform cursor-pointer"
                           title="Sağa Kaydır"
                         >
                           <span className="text-[11px]">Sağ</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          <ChevronRight className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => {
                             triggerHaptic(20);
                             sendMessage({ type: 'PAN_MEDIA', dx: 0, dy: 0, reset: true });
                           }}
-                          className="py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center gap-0.5 font-semibold active:scale-95 transition-transform"
+                          className="col-span-2 sm:col-span-1 min-h-[40px] py-1.5 rounded-lg bg-white dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center gap-1 font-semibold active:scale-95 transition-transform cursor-pointer"
                           title="Ortala"
                         >
-                          <RotateCcw className="w-3 h-3" />
+                          <RotateCcw className="w-3.5 h-3.5" />
                           <span className="text-[11px]">Ortala</span>
                         </button>
                       </div>
@@ -1258,7 +1297,7 @@ export const KumandaPage: React.FC = () => {
                 </div>
 
                 {/* 4. DOCUMENT FILTERS */}
-                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3 flex flex-col gap-2 shadow-2xs">
+                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3.5 flex flex-col gap-2 shadow-2xs">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-[#8ba3bd] flex items-center gap-1.5">
                     <SlidersHorizontal className="w-3.5 h-3.5 text-[#0284c7] dark:text-[#38bdf8]" />
                     <span>Görüntü Netleştirme (Kitap Tarayıcı):</span>
@@ -1266,19 +1305,31 @@ export const KumandaPage: React.FC = () => {
                   <div className="grid grid-cols-3 gap-1.5 text-xs font-medium">
                     <button
                       onClick={() => handleSetDocFilter('normal')}
-                      className="py-2 rounded-lg bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300"
+                      className={`min-h-[42px] py-2 rounded-xl border transition-colors cursor-pointer ${
+                        boardState.docFilter === 'normal'
+                          ? 'bg-[#0284c7]/15 border-[#0284c7]/40 text-[#0284c7] dark:text-[#38bdf8] font-bold'
+                          : 'bg-slate-100 dark:bg-[#10243b] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300'
+                      }`}
                     >
                       Orijinal
                     </button>
                     <button
                       onClick={() => handleSetDocFilter('doc-scan')}
-                      className="py-2 rounded-lg bg-[#0284c7]/15 border border-[#0284c7]/35 text-[#0284c7] dark:text-[#38bdf8] font-semibold"
+                      className={`min-h-[42px] py-2 rounded-xl border transition-colors cursor-pointer ${
+                        boardState.docFilter === 'doc-scan'
+                          ? 'bg-[#0284c7]/15 border-[#0284c7]/40 text-[#0284c7] dark:text-[#38bdf8] font-bold'
+                          : 'bg-slate-100 dark:bg-[#10243b] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300'
+                      }`}
                     >
                       Kitap Modu
                     </button>
                     <button
                       onClick={() => handleSetDocFilter('grayscale')}
-                      className="py-2 rounded-lg bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300"
+                      className={`min-h-[42px] py-2 rounded-xl border transition-colors cursor-pointer ${
+                        boardState.docFilter === 'grayscale'
+                          ? 'bg-[#0284c7]/15 border-[#0284c7]/40 text-[#0284c7] dark:text-[#38bdf8] font-bold'
+                          : 'bg-slate-100 dark:bg-[#10243b] border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300'
+                      }`}
                     >
                       Fotokopi
                     </button>
@@ -1288,7 +1339,7 @@ export const KumandaPage: React.FC = () => {
                 {/* Clear Tahta Button */}
                 <button
                   onClick={handleClearScreen}
-                  className="w-full py-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/35 text-rose-600 dark:text-[#e54c4c] font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  className="w-full min-h-[48px] py-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/35 text-rose-600 dark:text-[#e54c4c] font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Tahtayı Temizle / Dersi Bitir</span>
@@ -1342,15 +1393,15 @@ export const KumandaPage: React.FC = () => {
               <div className="flex flex-col gap-3">
                 {/* 1. KRONOMETRE & GERİ SAYIM SAYACI */}
                 <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <Timer className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8]" />
+                      <Timer className="w-4 h-4 text-[#0284c7] dark:text-[#38bdf8] shrink-0" />
                       <span>Soru Çözüm Kronometresi</span>
                     </h3>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => handleTimerAction(isTimerRunning ? 'pause' : 'start')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${
+                        className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer ${
                           isTimerRunning ? 'bg-amber-500 text-slate-950' : 'bg-emerald-600 text-white'
                         }`}
                       >
@@ -1359,10 +1410,10 @@ export const KumandaPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleTimerAction('reset')}
-                        className="p-1.5 rounded-lg bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300"
+                        className="min-w-[38px] min-h-[38px] p-1.5 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-slate-700 dark:text-slate-300 cursor-pointer"
                         title="Sıfırla"
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
+                        <RotateCcw className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -1373,7 +1424,7 @@ export const KumandaPage: React.FC = () => {
                       <button
                         key={s}
                         onClick={() => handleTimerAction('set', s)}
-                        className="py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] active:scale-95 transition-all"
+                        className="min-h-[44px] py-2.5 rounded-xl bg-slate-100 dark:bg-[#10243b] hover:bg-slate-200 dark:hover:bg-[#15304f] border border-slate-200 dark:border-[#193654] text-[#0284c7] dark:text-[#38bdf8] active:scale-95 transition-all cursor-pointer"
                       >
                         {s < 60 ? `${s} sn` : `${s / 60} dk`}
                       </button>
@@ -1381,49 +1432,57 @@ export const KumandaPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. ZAR ATMA & ŞANSLI ÖĞRENCİ (1-30) */}
-                <div className="grid grid-cols-2 gap-2.5">
+                {/* 2. ZAR ATMA & ŞANSLI ÖĞRENCİ (1-30) - Stacks on phones for generous touch buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 flex flex-col justify-between shadow-2xs">
-                    <div>
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-600 dark:text-[#e5933a] mb-2">
-                        <Dices className="w-4 h-4" />
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-600 dark:text-[#e5933a]">
+                          <Dices className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Akıllı Zar</h4>
+                          <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd]">Matematik &amp; oyunlar</p>
+                        </div>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">Akıllı Zar</h4>
-                      <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd] mb-3">Matematik &amp; oyunlar</p>
                     </div>
-                    <div className="flex gap-1.5">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => handleRollDice(1)}
-                        className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-slate-950 active:scale-95 transition-all"
+                        className="min-h-[44px] py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-slate-950 active:scale-95 transition-all cursor-pointer"
                       >
-                        1 Zar
+                        1 Zar At
                       </button>
                       <button
                         onClick={() => handleRollDice(2)}
-                        className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-slate-950 active:scale-95 transition-all"
+                        className="min-h-[44px] py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-slate-950 active:scale-95 transition-all cursor-pointer"
                       >
-                        2 Zar
+                        2 Zar At
                       </button>
                     </div>
                   </div>
 
                   <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 flex flex-col justify-between shadow-2xs">
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-600 dark:text-[#10b981]">
-                          <Users className="w-4 h-4" />
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-600 dark:text-[#10b981]">
+                            <Users className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white">Şanslı Öğrenci</h4>
+                            <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd]">1'den {studentMax}'a kadar kura</p>
+                          </div>
                         </div>
                         {latestPickedStudent && (
-                          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/35 text-emerald-700 dark:text-[#10b981] font-mono font-bold text-xs animate-pulse">
+                          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/35 text-emerald-700 dark:text-[#10b981] font-mono font-bold text-xs animate-pulse">
                             {latestPickedStudent}
                           </span>
                         )}
                       </div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-0.5">Şanslı Öğrenci</h4>
-                      <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd] mb-2">1'den {studentMax}'a kadar kura</p>
 
                       {/* Quick class size selector */}
-                      <div className="flex items-center gap-1 mb-3">
+                      <div className="grid grid-cols-4 gap-1.5 mb-3">
                         {[20, 25, 30, 35].map((s) => (
                           <button
                             key={s}
@@ -1431,13 +1490,13 @@ export const KumandaPage: React.FC = () => {
                               triggerHaptic(20);
                               setStudentMax(s);
                             }}
-                            className={`flex-1 py-1 rounded text-[10px] font-bold transition-all ${
+                            className={`min-h-[36px] py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                               studentMax === s
-                                ? 'bg-emerald-600 text-white'
+                                ? 'bg-emerald-600 text-white shadow-2xs'
                                 : 'bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] border border-slate-200 dark:border-[#193654]'
                             }`}
                           >
-                            {s}
+                            {s} Kişi
                           </button>
                         ))}
                       </div>
@@ -1445,19 +1504,19 @@ export const KumandaPage: React.FC = () => {
 
                     <button
                       onClick={() => handlePickStudentNumber(studentMax)}
-                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1"
+                      className="w-full min-h-[44px] py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-4 h-4" />
                       <span>1-{studentMax} Numara Seç</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 3. TAHTAYI KARART (DİKKAT MODU) */}
-                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 flex items-center justify-between shadow-2xs">
-                  <div>
+                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="min-w-0">
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <EyeOff className="w-4 h-4 text-[#e54c4c]" />
+                      <EyeOff className="w-4 h-4 text-[#e54c4c] shrink-0" />
                       <span>Tahtayı Karart (Öğretmene Odaklan)</span>
                     </h3>
                     <p className="text-[10px] text-slate-500 dark:text-[#8ba3bd] mt-0.5">
@@ -1466,7 +1525,7 @@ export const KumandaPage: React.FC = () => {
                   </div>
                   <button
                     onClick={handleToggleBlackout}
-                    className="px-4 py-2 rounded-xl bg-[#e54c4c] hover:bg-[#dc2626] text-white font-bold text-xs transition-colors shrink-0 active:scale-95"
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-[#e54c4c] hover:bg-[#dc2626] text-white font-bold text-xs transition-colors shrink-0 active:scale-95 cursor-pointer"
                   >
                     Perde
                   </button>
@@ -1489,7 +1548,7 @@ export const KumandaPage: React.FC = () => {
             {/* TAB 4: LASER TOUCHPAD */}
             {activeTab === 'laser' && (
               <div className="flex flex-col gap-3">
-                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3 shadow-2xs">
+                <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-3.5 shadow-2xs">
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
                     <Crosshair className="w-4 h-4 text-[#e54c4c]" />
                     <span>Canlı Lazer İşaretçi Touchpad</span>
@@ -1510,7 +1569,7 @@ export const KumandaPage: React.FC = () => {
                     if (e.buttons === 1) handleLaserTouch(e, true);
                   }}
                   onMouseUp={(e) => handleLaserTouch(e, false)}
-                  className={`relative w-full h-84 rounded-2xl border-2 transition-all flex flex-col items-center justify-center cursor-crosshair overflow-hidden touch-none select-none ${
+                  className={`relative w-full h-[46dvh] min-h-[260px] max-h-[380px] rounded-2xl border-2 transition-all flex flex-col items-center justify-center cursor-crosshair overflow-hidden touch-none select-none ${
                     laserActive
                       ? 'bg-[#e54c4c]/15 border-[#e54c4c] shadow-[0_0_25px_rgba(229,76,76,0.25)]'
                       : 'bg-white dark:bg-[#0b1a2d] border-slate-200 dark:border-[#193654]'
@@ -1557,54 +1616,54 @@ export const KumandaPage: React.FC = () => {
                     <span>Tahtaya Hızlı Not / Soru Gönder</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-[#8ba3bd] mb-3">
-                    Tahtaya anında duyuru, soru numarası veya tebrik mesajı yansıtın.
+                    Tahtaya anında duyuru, soru numarası veya tebrik mesajı yansıtın (10 sn ekranda kalır).
                   </p>
 
-                  <form onSubmit={handleSendNote} className="flex gap-2">
+                  <form onSubmit={handleSendNote} className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={quickNote}
                       onChange={(e) => setQuickNote(e.target.value)}
                       placeholder="Örn: Sayfa 42 Soru 3'ü çözün"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0284c7]"
+                      className="flex-1 min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-[#071322] border border-slate-200 dark:border-[#193654] text-base sm:text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#0284c7]"
                     />
                     <button
                       type="submit"
                       disabled={!quickNote.trim()}
-                      className="px-4 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1 active:scale-95 transition-all"
+                      className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                     >
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Gönder</span>
+                      <Send className="w-4 h-4" />
+                      <span>Tahtaya Gönder</span>
                     </button>
                   </form>
                 </div>
 
                 <div className="bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] rounded-2xl p-4 shadow-2xs">
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-[#8ba3bd] block mb-2">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-[#8ba3bd] block mb-2.5">
                     Hazır Öğretmen Şablonları:
                   </span>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 gap-2 text-xs">
                     <button
                       onClick={() => handleSendPresetNote('🌟 Harika Çözüm! Tebrikler!')}
-                      className="p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-amber-600 dark:text-[#e5933a] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all"
+                      className="min-h-[46px] p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-amber-600 dark:text-[#e5933a] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all cursor-pointer"
                     >
                       🌟 Harika Çözüm!
                     </button>
                     <button
                       onClick={() => handleSendPresetNote('⏱️ Süre: Son 2 Dakika')}
-                      className="p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-rose-600 dark:text-[#e54c4c] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all"
+                      className="min-h-[46px] p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-rose-600 dark:text-[#e54c4c] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all cursor-pointer"
                     >
                       ⏱️ Son 2 Dakika
                     </button>
                     <button
                       onClick={() => handleSendPresetNote('📖 Defterlerinize Not Alınız')}
-                      className="p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-[#0284c7] dark:text-[#38bdf8] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all"
+                      className="min-h-[46px] p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-[#0284c7] dark:text-[#38bdf8] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all cursor-pointer"
                     >
                       📖 Deftere Not Alınız
                     </button>
                     <button
                       onClick={() => handleSendPresetNote('❓ Sorusu Olan Var mı?')}
-                      className="p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-emerald-600 dark:text-[#10b981] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all"
+                      className="min-h-[46px] p-3 rounded-xl bg-slate-50 dark:bg-[#10243b] hover:bg-slate-100 dark:hover:bg-[#15304f] text-left font-semibold text-emerald-600 dark:text-[#10b981] border border-slate-200 dark:border-[#193654] active:scale-95 transition-all cursor-pointer"
                     >
                       ❓ Sorusu Olan Var mı?
                     </button>
@@ -1626,9 +1685,9 @@ export const KumandaPage: React.FC = () => {
             />
           )}
 
-          <div className="fixed bottom-20 right-4 sm:right-6 z-[45] flex flex-col items-end gap-3 pointer-events-auto select-none">
+          <div className="fixed bottom-20 right-3.5 sm:right-6 z-[45] flex flex-col items-end gap-3 pointer-events-auto select-none">
             {isQuickActionOpen && (
-              <div className="w-72 max-w-[calc(100vw-2rem)] max-h-[72vh] overflow-y-auto rounded-2xl bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border border-slate-200 dark:border-[#193654] shadow-2xl p-3 flex flex-col gap-3 animate-in slide-in-from-bottom-4 fade-in duration-200">
+              <div className="w-72 max-w-[calc(100vw-1.75rem)] max-h-[72dvh] overflow-y-auto rounded-2xl bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border border-slate-200 dark:border-[#193654] shadow-2xl p-3 flex flex-col gap-3 animate-in slide-in-from-bottom-4 fade-in duration-200">
                 {/* Section 1: Alt Menüler (Hızlı Sekme Geçişi) */}
                 <div>
                   <div className="flex items-center justify-between px-1 mb-2">
@@ -1647,7 +1706,7 @@ export const KumandaPage: React.FC = () => {
                         setActiveTab('controls');
                         setIsQuickActionOpen(false);
                       }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      className={`min-h-[42px] flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                         activeTab === 'controls'
                           ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
                           : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#0284c7]/50'
@@ -1664,7 +1723,7 @@ export const KumandaPage: React.FC = () => {
                         setActiveTab('drawing');
                         setIsQuickActionOpen(false);
                       }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      className={`min-h-[42px] flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                         activeTab === 'drawing'
                           ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                           : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-emerald-500/50'
@@ -1681,7 +1740,7 @@ export const KumandaPage: React.FC = () => {
                         setActiveTab('mouse');
                         setIsQuickActionOpen(false);
                       }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      className={`min-h-[42px] flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                         activeTab === 'mouse'
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                           : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-indigo-500/50'
@@ -1698,7 +1757,7 @@ export const KumandaPage: React.FC = () => {
                         setActiveTab('laser');
                         setIsQuickActionOpen(false);
                       }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      className={`min-h-[42px] flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                         activeTab === 'laser'
                           ? 'bg-[#e54c4c] text-white border-[#e54c4c] shadow-xs'
                           : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#e54c4c]/50'
@@ -1715,7 +1774,7 @@ export const KumandaPage: React.FC = () => {
                         setActiveTab('classroom');
                         setIsQuickActionOpen(false);
                       }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      className={`min-h-[42px] flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                         activeTab === 'classroom'
                           ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
                           : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-amber-500/50'
@@ -1732,7 +1791,7 @@ export const KumandaPage: React.FC = () => {
                         setActiveTab('note');
                         setIsQuickActionOpen(false);
                       }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
+                      className={`min-h-[42px] flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                         activeTab === 'note'
                           ? 'bg-[#0284c7] text-white border-[#0284c7] shadow-xs'
                           : 'bg-slate-50 dark:bg-[#071322] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-[#193654] hover:border-[#0284c7]/50'
@@ -1760,7 +1819,7 @@ export const KumandaPage: React.FC = () => {
                       toggleDocumentCamera();
                       setIsQuickActionOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-white shadow-xs transition-all active:scale-95 cursor-pointer ${
+                    className={`w-full min-h-[42px] flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-white shadow-xs transition-all active:scale-95 cursor-pointer ${
                       isCameraActive 
                         ? 'bg-[#e54c4c] hover:bg-[#dc2626]' 
                         : 'bg-[#10b981] hover:bg-[#059669]'
@@ -1779,7 +1838,7 @@ export const KumandaPage: React.FC = () => {
                       handleRotate();
                       setIsQuickActionOpen(false);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
+                    className="w-full min-h-[42px] flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
                     title="Tahtadaki Görüntüyü 90° Çevir"
                   >
                     <span>90° Döndür</span>
@@ -1794,7 +1853,7 @@ export const KumandaPage: React.FC = () => {
                       handleClearScreen();
                       setIsQuickActionOpen(false);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-[#ef4444] text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                    className="w-full min-h-[42px] flex items-center justify-between px-3 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-[#ef4444] text-xs font-bold transition-all active:scale-95 cursor-pointer"
                     title="Tüm Materyalleri Kapat ve Tahtayı Temizle"
                   >
                     <span>Tahtayı Temizle</span>
@@ -1811,7 +1870,7 @@ export const KumandaPage: React.FC = () => {
                 setIsQuickActionOpen((prev) => !prev);
               }}
               aria-label="Hızlı İşlemler Menüsü"
-              className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-200 border-2 active:scale-90 ${
+              className={`w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-200 border-2 active:scale-90 cursor-pointer ${
                 isQuickActionOpen
                   ? 'bg-white dark:bg-[#0b1a2d] border-[#0284c7] text-[#0284c7] dark:text-[#38bdf8] rotate-90'
                   : 'bg-gradient-to-tr from-[#0284c7] to-[#38bdf8] border-white/20 text-white'
@@ -1830,15 +1889,15 @@ export const KumandaPage: React.FC = () => {
 
       {/* ERGONOMIC FIXED BOTTOM NAVIGATION BAR */}
       {isConnected && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-t border-slate-200 dark:border-[#193654] px-1 py-1.5 max-w-md mx-auto grid grid-cols-6 items-center shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/98 dark:bg-[#0b1a2d]/98 backdrop-blur-xl border-t border-slate-200 dark:border-[#193654] px-1 pt-1.5 pb-safe max-w-md md:max-w-xl mx-auto grid grid-cols-6 items-center shadow-2xl">
           <button
             onClick={() => {
               triggerHaptic(20);
               setActiveTab('controls');
               setIsQuickActionOpen(false);
             }}
-            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'controls' ? 'text-[#0284c7] dark:text-[#38bdf8] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            className={`min-h-[48px] flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'controls' ? 'bg-[#0284c7]/10 text-[#0284c7] dark:text-[#38bdf8] font-bold' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Camera className="w-5 h-5 mb-0.5" />
@@ -1851,8 +1910,8 @@ export const KumandaPage: React.FC = () => {
               setActiveTab('drawing');
               setIsQuickActionOpen(false);
             }}
-            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'drawing' ? 'text-emerald-600 dark:text-[#10b981] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            className={`min-h-[48px] flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'drawing' ? 'bg-emerald-500/10 text-emerald-600 dark:text-[#10b981] font-bold' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <PenTool className="w-5 h-5 mb-0.5" />
@@ -1865,8 +1924,8 @@ export const KumandaPage: React.FC = () => {
               setActiveTab('mouse');
               setIsQuickActionOpen(false);
             }}
-            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'mouse' ? 'text-indigo-600 dark:text-indigo-400 font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            className={`min-h-[48px] flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'mouse' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Mouse className="w-5 h-5 mb-0.5" />
@@ -1879,8 +1938,8 @@ export const KumandaPage: React.FC = () => {
               setActiveTab('laser');
               setIsQuickActionOpen(false);
             }}
-            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'laser' ? 'text-[#e54c4c] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            className={`min-h-[48px] flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'laser' ? 'bg-rose-500/10 text-[#e54c4c] font-bold' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Crosshair className="w-5 h-5 mb-0.5" />
@@ -1893,8 +1952,8 @@ export const KumandaPage: React.FC = () => {
               setActiveTab('classroom');
               setIsQuickActionOpen(false);
             }}
-            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'classroom' ? 'text-amber-600 dark:text-[#e5933a] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            className={`min-h-[48px] flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'classroom' ? 'bg-amber-500/10 text-amber-600 dark:text-[#e5933a] font-bold' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Timer className="w-5 h-5 mb-0.5" />
@@ -1907,8 +1966,8 @@ export const KumandaPage: React.FC = () => {
               setActiveTab('note');
               setIsQuickActionOpen(false);
             }}
-            className={`min-h-[46px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'note' ? 'text-[#0284c7] dark:text-[#38bdf8] font-bold scale-105' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+            className={`min-h-[48px] flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'note' ? 'bg-[#0284c7]/10 text-[#0284c7] dark:text-[#38bdf8] font-bold' : 'text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <MessageSquare className="w-5 h-5 mb-0.5" />

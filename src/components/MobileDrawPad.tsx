@@ -234,13 +234,13 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
   return (
     <div className="flex flex-col gap-3 w-full select-none">
       {/* Top Drawing Tools Bar */}
-      <div className="flex flex-col gap-2 p-2.5 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
-        <div className="flex items-center justify-between gap-1">
-          <div className="flex items-center gap-1">
+      <div className="flex flex-col gap-2.5 p-3 rounded-2xl bg-white dark:bg-[#0b1a2d] border border-slate-200 dark:border-[#193654] shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setTool('pen')}
-              className={`p-2 rounded-xl transition-all ${
-                tool === 'pen' ? 'bg-[#0284c7] text-white shadow-xs' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+              className={`min-w-[42px] min-h-[42px] p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                tool === 'pen' ? 'bg-[#0284c7] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Kalem"
             >
@@ -248,8 +248,8 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
             </button>
             <button
               onClick={() => setTool('highlighter')}
-              className={`p-2 rounded-xl transition-all ${
-                tool === 'highlighter' ? 'bg-[#eab308] text-slate-950 font-bold shadow-xs' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+              className={`min-w-[42px] min-h-[42px] p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                tool === 'highlighter' ? 'bg-[#eab308] text-slate-950 font-bold shadow-xs' : 'bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Fosforlu Vurgu"
             >
@@ -257,8 +257,8 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
             </button>
             <button
               onClick={() => setTool('eraser')}
-              className={`p-2 rounded-xl transition-all ${
-                tool === 'eraser' ? 'bg-[#e54c4c] text-white shadow-xs' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
+              className={`min-w-[42px] min-h-[42px] p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                tool === 'eraser' ? 'bg-[#e54c4c] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Silgi"
             >
@@ -272,8 +272,8 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
                 <button
                   key={w.value}
                   onClick={() => setCurrentWidth(w.value)}
-                  className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                    currentWidth === w.value ? 'bg-[#0284c7] text-white' : 'text-slate-600 dark:text-[#8ba3bd]'
+                  className={`min-h-[34px] px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    currentWidth === w.value ? 'bg-[#0284c7] text-white shadow-2xs' : 'text-slate-600 dark:text-[#8ba3bd]'
                   }`}
                 >
                   {w.label}
@@ -282,11 +282,11 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
             </div>
           )}
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handleUndo}
               disabled={strokeHistory.length === 0}
-              className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 rounded-xl transition-colors"
+              className="min-w-[42px] min-h-[42px] p-2 flex items-center justify-center bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 rounded-xl transition-colors cursor-pointer"
               title="Geri Al"
             >
               <RotateCcw className="w-4 h-4" />
@@ -294,7 +294,7 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
             <button
               onClick={handleClear}
               disabled={strokeHistory.length === 0}
-              className="p-2 text-[#e54c4c] hover:text-rose-600 disabled:opacity-30 rounded-xl transition-colors"
+              className="min-w-[42px] min-h-[42px] p-2 flex items-center justify-center bg-rose-500/10 text-[#e54c4c] hover:text-rose-600 disabled:opacity-30 rounded-xl transition-colors cursor-pointer"
               title="Temizle"
             >
               <Trash2 className="w-4 h-4" />
@@ -303,16 +303,16 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
         </div>
 
         {tool !== 'eraser' && (
-          <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-[#193654] px-1">
-            <div className="flex items-center gap-2 overflow-x-auto py-0.5">
+          <div className="flex items-center justify-between pt-2.5 border-t border-slate-200 dark:border-[#193654] px-1">
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
               {PRESET_COLORS.map((c) => (
                 <button
                   key={c.value}
                   onClick={() => setCurrentColor(c.value)}
                   title={c.name}
-                  className={`w-6 h-6 rounded-full border transition-transform shrink-0 ${
+                  className={`w-7 h-7 rounded-full border transition-transform shrink-0 cursor-pointer ${
                     currentColor.toLowerCase() === c.value.toLowerCase()
-                      ? 'scale-125 border-slate-900 dark:border-white ring-2 ring-[#0284c7]'
+                      ? 'scale-115 border-slate-900 dark:border-white ring-2 ring-[#0284c7]'
                       : 'border-slate-300 dark:border-slate-600 opacity-85'
                   }`}
                   style={{ backgroundColor: c.value }}
@@ -320,7 +320,7 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
               ))}
 
               <label
-                className="relative flex items-center justify-center w-6 h-6 rounded-full cursor-pointer border border-slate-400 overflow-hidden shrink-0"
+                className="relative flex items-center justify-center w-7 h-7 rounded-full cursor-pointer border border-slate-400 overflow-hidden shrink-0"
                 style={{
                   background: 'conic-gradient(from 180deg at 50% 50%, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
                 }}
@@ -336,7 +336,7 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
             </div>
 
             <div 
-              className="w-4 h-4 rounded-full border border-slate-300 dark:border-white/60 shrink-0 ml-2"
+              className="w-5 h-5 rounded-full border border-slate-300 dark:border-white/60 shrink-0 ml-2"
               style={{ backgroundColor: currentColor }}
               title="Seçili Renk"
             />
@@ -345,7 +345,7 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
       </div>
 
       {/* Touch Drawing Area on Mobile */}
-      <div className="relative w-full h-80 rounded-2xl bg-white dark:bg-[#071322] border-2 border-slate-200 dark:border-[#193654] overflow-hidden shadow-inner touch-none">
+      <div className="relative w-full h-[44dvh] min-h-[260px] max-h-[380px] rounded-2xl bg-white dark:bg-[#071322] border-2 border-slate-200 dark:border-[#193654] overflow-hidden shadow-inner touch-none">
         {bgPreviewUrl && (
           <img
             src={bgPreviewUrl}
@@ -364,9 +364,9 @@ export const MobileDrawPad: React.FC<MobileDrawPadProps> = ({
           style={{ touchAction: 'none' }}
         />
 
-        <div className="absolute bottom-2 left-3 pointer-events-none text-[10px] text-slate-600 dark:text-[#8ba3bd] bg-white/90 dark:bg-[#0b1a2d]/90 px-2.5 py-1 rounded-full border border-slate-200 dark:border-[#193654] flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Parmağınızla buraya çizin, tahtada anlık belirsin</span>
+        <div className="absolute bottom-2.5 left-3 right-3 sm:right-auto pointer-events-none text-[10px] text-slate-600 dark:text-[#8ba3bd] bg-white/90 dark:bg-[#0b1a2d]/90 px-2.5 py-1 rounded-full border border-slate-200 dark:border-[#193654] flex items-center gap-1.5 w-fit max-w-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span className="truncate">Parmağınızla buraya çizin, tahtada anlık belirsin</span>
         </div>
       </div>
     </div>

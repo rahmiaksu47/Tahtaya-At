@@ -39,7 +39,7 @@ interface TelegramToastProps {
 
 export const TelegramToast: React.FC<TelegramToastProps> = ({ toasts, onDismiss }) => {
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-md w-[calc(100vw-2rem)] pointer-events-none select-none">
+    <div className="fixed top-3 inset-x-3 sm:left-auto sm:right-4 z-[9999] flex flex-col gap-2 sm:max-w-md sm:w-full pointer-events-none select-none">
       {toasts.map((toast) => (
         <ToastCard key={toast.id} toast={toast} onDismiss={() => onDismiss(toast.id)} />
       ))}
@@ -158,10 +158,10 @@ const ToastCard: React.FC<{ toast: ToastItem; onDismiss: () => void }> = ({ toas
 
         <button
           onClick={onDismiss}
-          className="text-slate-400 hover:text-slate-800 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] transition-colors -mr-1 -mt-1"
+          className="min-w-[38px] min-h-[38px] flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#10243b] transition-colors -mr-1.5 -mt-1.5 shrink-0 cursor-pointer"
           title="Kapat"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4" />
         </button>
       </div>
 

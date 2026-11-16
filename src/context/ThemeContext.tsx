@@ -84,21 +84,22 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => 
       type="button"
       title={theme === 'light' ? 'Koyu Temaya (Gece Modu) Geç' : 'Açık Temaya (Aydınlık Sınıf Modu) Geç'}
       aria-label="Tema Değiştir"
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-[#193654] bg-white dark:bg-[#10243b] hover:bg-slate-50 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 font-medium text-xs transition-all duration-150 active:scale-95 whitespace-nowrap shrink-0 cursor-pointer ${
-        compact ? 'p-2' : 'px-3 py-1.5'
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#193654] bg-white dark:bg-[#10243b] hover:bg-slate-50 dark:hover:bg-[#15304f] text-slate-700 dark:text-slate-200 font-semibold text-xs transition-all duration-150 active:scale-95 whitespace-nowrap shrink-0 cursor-pointer min-h-[42px] ${
+        compact ? 'min-w-[42px] p-2.5' : 'px-3.5 py-2'
       }`}
     >
       {theme === 'light' ? (
         <>
-          <Moon className="w-3.5 h-3.5 text-slate-700" />
+          <Moon className="w-4 h-4 text-slate-700" />
           {!compact && <span>Koyu Tema</span>}
         </>
       ) : (
         <>
-          <Sun className="w-3.5 h-3.5 text-amber-400" />
+          <Sun className="w-4 h-4 text-amber-400" />
           {!compact && <span>Açık Tema</span>}
         </>
       )}
     </button>
   );
 };
+

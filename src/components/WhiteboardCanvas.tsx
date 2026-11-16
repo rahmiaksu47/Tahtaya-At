@@ -552,8 +552,8 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             hideToolbarOnMobile ? 'max-md:hidden ' : ''
           }${
             isVerticalLayout 
-              ? 'flex flex-col items-stretch gap-2 max-h-[calc(100vh-7.5rem)] overflow-y-auto w-[106px]' 
-              : 'flex flex-wrap items-center gap-2 max-w-[96vw]'
+              ? 'flex flex-col items-stretch gap-2 max-h-[calc(100dvh-7.5rem)] overflow-y-auto w-[104px] sm:w-[106px]' 
+              : 'flex flex-wrap items-center gap-2 max-w-[94vw]'
           }`}
         >
           {/* 1. Drag Handle & Orientation Toggle */}
@@ -564,7 +564,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onPointerUp={handleDragEnd}
               onPointerCancel={handleDragEnd}
               className={`flex items-center justify-center p-1.5 rounded-lg bg-slate-100 dark:bg-[#071322] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white cursor-grab active:cursor-grabbing hover:bg-slate-200 dark:hover:bg-[#10243b] border border-slate-200 dark:border-[#193654] transition-colors touch-none ${
-                isVerticalLayout ? 'flex-1 py-1' : 'px-2'
+                isVerticalLayout ? 'flex-1 py-1.5' : 'px-2 py-1.5'
               }`}
               title="Taşımak için basılı tutup ekranda istediğiniz yere sürükleyin"
             >
@@ -577,7 +577,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
                 setToolbarPos(null);
                 setIsVerticalLayout((prev) => !prev);
               }}
-              className="p-1.5 rounded-lg bg-slate-100 dark:bg-[#071322] hover:bg-slate-200 dark:hover:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#193654] transition-colors cursor-pointer shrink-0"
+              className="min-w-[32px] min-h-[32px] p-1.5 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-[#071322] hover:bg-slate-200 dark:hover:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#193654] transition-colors cursor-pointer shrink-0"
               title={isVerticalLayout ? 'Yatay Çubuğa Geç' : 'Dikey Kenar Çubuğuna Geç'}
             >
               <Move className="w-3.5 h-3.5" />
@@ -590,7 +590,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
           <button
             onClick={onToggleDrawing}
             title={isDrawingEnabled ? 'Çizimi Duraklat' : 'Kalemi Aç'}
-            className={`px-2 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold cursor-pointer whitespace-nowrap shrink-0 ${
+            className={`min-h-[36px] px-2 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold cursor-pointer whitespace-nowrap shrink-0 ${
               isDrawingEnabled 
                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-[#10b981] border border-emerald-500/30' 
                 : 'bg-slate-100 dark:bg-[#10243b] text-slate-600 dark:text-[#8ba3bd] border border-slate-200 dark:border-[#193654] hover:text-slate-900 dark:hover:text-white'
@@ -607,7 +607,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('pen')}
               title="Serbest Kalem"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'pen' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -616,7 +616,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('highlighter')}
               title="Fosforlu Vurgu Kalemi"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'highlighter' ? 'bg-[#eab308] text-slate-950 font-bold shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -625,7 +625,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('line')}
               title="Düz Çizgi"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'line' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -634,7 +634,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('arrow')}
               title="Ok İşareti"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'arrow' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -643,7 +643,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('rect')}
               title="Dikdörtgen"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'rect' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -652,7 +652,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('circle')}
               title="Daire"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 tool === 'circle' ? 'bg-[#0284c7] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -661,7 +661,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
             <button
               onClick={() => setTool('eraser')}
               title="Silgi"
-              className={`p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+              className={`min-h-[34px] p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                 isVerticalLayout ? 'col-span-2' : ''
               } ${
                 tool === 'eraser' ? 'bg-[#dc2626] text-white shadow-sm' : 'text-slate-600 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white'
@@ -736,7 +736,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
                   <button
                     key={w.value}
                     onClick={() => setCurrentWidth(w.value)}
-                    className={`px-1.5 py-1 rounded-md text-[11px] font-mono font-bold transition-colors cursor-pointer tabular-nums whitespace-nowrap flex items-center justify-center gap-1 ${
+                    className={`min-h-[28px] px-1.5 py-1 rounded-md text-[11px] font-mono font-bold transition-colors cursor-pointer tabular-nums whitespace-nowrap flex items-center justify-center gap-1 ${
                       currentWidth === w.value
                         ? 'bg-[#0284c7] text-white shadow-2xs'
                         : 'bg-white dark:bg-[#0b1a2d] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#193654] hover:border-[#0284c7]'
@@ -787,7 +787,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onClick={handleUndo}
               disabled={localStrokes.length === 0}
               title="Geri Al"
-              className="p-1.5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="min-h-[34px] p-1.5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -795,7 +795,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onClick={handleRedo}
               disabled={redoStack.length === 0}
               title="İleri Al"
-              className="p-1.5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="min-h-[34px] p-1.5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <RotateCw className="w-4 h-4" />
             </button>
@@ -803,7 +803,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onClick={handleClearAll}
               disabled={allStrokes.length === 0}
               title="Tüm Çizimleri Temizle"
-              className="p-1.5 flex items-center justify-center text-[#dc2626] hover:text-rose-700 disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="min-h-[34px] p-1.5 flex items-center justify-center text-[#dc2626] hover:text-rose-700 disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -811,7 +811,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
               onClick={handleDownload}
               disabled={allStrokes.length === 0}
               title="Çizimi PNG Olarak Kaydet"
-              className="p-1.5 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] hover:text-[#0369a1] disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
+              className="min-h-[34px] p-1.5 flex items-center justify-center text-[#0284c7] dark:text-[#38bdf8] hover:text-[#0369a1] disabled:opacity-30 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer"
             >
               <Download className="w-4 h-4" />
             </button>
@@ -823,7 +823,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
           <button
             onClick={() => setShowToolbar(false)}
             title="Z-Kitap Çubuğunu Gizle"
-            className="p-1.5 flex items-center justify-center gap-1 text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer text-[11px] font-semibold"
+            className="min-h-[34px] p-1.5 flex items-center justify-center gap-1 text-slate-500 dark:text-[#8ba3bd] hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-[#10243b] cursor-pointer text-[11px] font-semibold"
           >
             <ChevronDown className="w-4 h-4" />
             {isVerticalLayout && <span>Gizle</span>}
@@ -835,7 +835,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
       {!showToolbar && (
         <button
           onClick={() => setShowToolbar(true)}
-          className={`absolute bottom-4 left-4 z-40 pointer-events-auto bg-white/95 dark:bg-[#0b1a2d]/95 hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-[#193654] transition-all flex items-center gap-2 text-xs font-bold active:scale-95 animate-in zoom-in-95 duration-150 cursor-pointer ${
+          className={`absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-40 pointer-events-auto min-h-[42px] bg-white/95 dark:bg-[#0b1a2d]/95 hover:bg-slate-50 dark:hover:bg-[#10243b] text-slate-900 dark:text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-200 dark:border-[#193654] transition-all flex items-center gap-2 text-xs font-bold active:scale-95 animate-in zoom-in-95 duration-150 cursor-pointer ${
             hideToolbarOnMobile ? 'max-md:hidden' : ''
           }`}
           title="Z-Kitap Kalem Araçlarını Aç"
